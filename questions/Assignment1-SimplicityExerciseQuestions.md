@@ -2,11 +2,11 @@ Please include your answers to the questions below with your submission, enterin
 See [Mastering Markdown](https://guides.github.com/features/mastering-markdown/) for github markdown formatting if desired.
 
 **1. How much current does the system draw (instantaneous measurement) when a single LED is on with the GPIO pin set to StrongAlternateStrong?**
-   Answer: LED0 was used for the purpose of measuring current in this question. It is observed that the Instantaneous current when the **LED0 is ON is 5.37mA** and **4.74mA when the LED0 is OFF**. From these measurements we can infer that the current drawn by the LED0 is **0.63mA** over one on-off cycle.
+   Answer: LED0 was used for the purpose of measuring current in this question. It is observed that the Instantaneous current drawn by the system when the **LED0 is ON is 5.37mA** and **4.74mA when the LED0 is OFF**. From these measurements we can infer that the current drawn by the LED0 is **0.63mA** over one on-off cycle.
 
 
 **2. How much current does the system draw (instantaneous measurement) when a single LED is on with the GPIO pin set to WeakAlternateWeak?**
-   Answer: LED0 was used for this question as well. It is observed that the Instantaneous current when the **LED0 is ON is 5.42mA** and **4.84mA when the LED0 is OFF**. Hence the current drawn by the LED0 is **0.58mA** over one on-off cycle.
+   Answer: LED0 was used for this question as well. It is observed that the Instantaneous current drawn by the system when the **LED0 is ON is 5.42mA** and **4.84mA when the LED0 is OFF**. Hence the current drawn by the LED0 is **0.58mA** over one on-off cycle.
 
 
 **3. Is there a meaningful difference in current between the answers for question 1 and 2? Please explain your answer, 
@@ -27,7 +27,8 @@ Conclusion these differences do not provide any meaningful information.
 		  			  = (1.93 * 0.5)mW = 0.96mW  
 		Average current 	  = (Average power / Voltage)  
 					  = 0.96mW / 3.33V  
-					  = **0.29mA**  
+					  = **0.29mA** 
+	Average current drawn by the system when the LED0 is ON is (Ion + Ioff)/2 = **5.13mA**
 
 
 **5. With the WeakAlternateWeak drive strength setting, what is the average current for 1 complete on-off cycle for 2 LEDs (both on at the time same and both off at the same time) with an on-off duty cycle of 50% (approximately 1 sec on, 1 sec off)?**
@@ -41,5 +42,5 @@ Conclusion these differences do not provide any meaningful information.
 		Average current 	  = (Average power / Voltage)  
 					  = 1.745mW / 3.33V  
 					  = **0.52mA**  
-
+	Average current drawn by the system when the LED0 and LED1 are on is (Ion + Ioff)/2 = **5.3mA**
 
