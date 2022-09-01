@@ -1,13 +1,13 @@
 # Silicon Labs Project Configuration Tools: slcp, v0, Component selection file.
-project_name: ecen5823-f22-assignments
-label: ecen5823-f22-assignments
+project_name: ecen5823-assignment1-Jahnavi-pinnamaneni
+label: ecen5823-assignment1-Jahnavi-pinnamaneni
 description: |
   A minimal project structure, that serves as a starting point for custom Bluetooth applications. It contains a minimal GATT database that can be expanded to fit your application requirements. The application starts advertising after boot and restarts advertising after a connection is closed. It also supports Over-the-Air Device Firmware Upgrade (OTA DFU).
 category: Bluetooth Examples
 package: Bluetooth
 quality: production
 readme:
-- {path: ../../../../../../Applications/Simplicity Studio.app/Contents/Eclipse/developer/sdks/gecko_sdk_suite/v3.2/app/bluetooth/documentation/example/soc_empty/readme.html}
+- {path: ../../../../../Applications/Simplicity Studio.app/Contents/Eclipse/developer/sdks/gecko_sdk_suite/v3.2/app/bluetooth/documentation/example/soc_empty/readme.html}
 source:
 - {path: main.c}
 - {path: app.c}
@@ -38,10 +38,10 @@ component:
 - instance: [vcom]
   id: iostream_usart
 - {id: bluetooth_feature_system}
-- {id: bluetooth_feature_scanner}
-- {id: emlib_letimer}
 - instance: [sensor]
   id: i2cspm
+- {id: emlib_letimer}
+- {id: bluetooth_feature_scanner}
 - {id: component_catalog}
 - {id: ota_dfu}
 - {id: bootloader_interface}
