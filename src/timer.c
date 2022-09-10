@@ -1,8 +1,10 @@
 /*
- * timer.c
+ * Created on: Sep 8, 2022
  *
- *  Created on: Sep 8, 2022
- *      Author: Jahnavi Pinnamaneni; japi8358@colorado.edu
+ * @file  : timer.c
+ * @brief : This file Initializes the LETIMER0 and sets the interrupts and COMP0 and COMP1 values.
+ * @author: Jahnavi Pinnamaneni; japi8358@colorado.edu
+ *
  */
 
 #include "timer.h"
@@ -29,8 +31,8 @@ void letimer0_init()
   LETIMER_Init (LETIMER0, &letimer);
   /*****************************************************************************************************/
 
-  LETIMER_CompareSet(LETIMER0, 0, COMP0_VALUE);//2250);
-  LETIMER_CompareSet(LETIMER0, 1, COMP1_VALUE);//175);
+  LETIMER_CompareSet(LETIMER0, 0, COMP0_VALUE);
+  LETIMER_CompareSet(LETIMER0, 1, COMP1_VALUE);
 
 
   LETIMER_IntClear (LETIMER0, 0xFFFFFFFF);
@@ -39,9 +41,9 @@ void letimer0_init()
   LETIMER_Enable(LETIMER0, true);
 
 
+  /*temp_count = LETIMER_CounterGet(LETIMER0);
   temp_count = LETIMER_CounterGet(LETIMER0);
-  temp_count = LETIMER_CounterGet(LETIMER0);
-  temp_count = LETIMER_CounterGet(LETIMER0);
+  temp_count = LETIMER_CounterGet(LETIMER0);*/
 
 }
 

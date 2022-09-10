@@ -1,8 +1,10 @@
 /*
- * timer.h
+ * Created on: Sep 8, 2022
  *
- *  Created on: Sep 8, 2022
- *      Author: Jahnavi Pinnamaneni; japi8358@colorado.edu
+ * @file  : timer.h
+ * @brief : This file Initializes the LETIMER0 and sets the interrupts and COMP0 and COMP1 values.
+ * @author: Jahnavi Pinnamaneni; japi8358@colorado.edu
+ *
  */
 
 #ifndef SRC_TIMER_H_
@@ -10,10 +12,6 @@
 
 #include <stdint.h>
 #include "app.h"
-
-#define LFXO_FREQ 32768
-#define LFXO_DIV 2000
-
 
 void letimer0_init();
 

@@ -5,12 +5,12 @@ See [Mastering Markdown](https://guides.github.com/features/mastering-markdown/)
 
 **1. Fill in the below chart based on currents measured in each energy mode, replacing each TBD with measured values.  Use the [Selecting Ranges](https://www.silabs.com/documents/public/user-guides/ug343-multinode-energy-profiler.pdf) feature of the profiler to select the appropriate measurement range.  Your measurements should be accurate to 10%**
 
-Energy Mode | Period (ms) | LED On Time (ms) |Period average current (uA) | Average Current with LED off (uA) | Average Current with LED On (uA)
-------------| ------------|------------------|----------------------------|-----------------------------------|---------------------------------
-EM0         |    TBD      |       TBD        |          TBD               |           TBD                     |         TBD
-EM1         |    TBD      |       TBD        |          TBD               |           TBD                     |         TBD
-EM2         |    TBD      |       TBD        |          TBD               |           TBD                     |         TBD
-EM3         |    TBD      |       TBD        |          TBD               |           TBD                     |         TBD
+Energy Mode | Period (ms)  | LED On Time (ms) |Period average current (uA)  | Average Current with LED off (uA) | Average Current with LED On (uA)
+------------| -------------|------------------|-----------------------------|-----------------------------------|---------------------------------
+EM0         |    2250      |       176        |          4930               |           4930                    |         5380
+EM1         |    2250      |       176        |          3510               |           3470                    |         3950
+EM2         |    2260      |       176        |          42.85              |           3.8                     |         499.3
+EM3         |    2210      |       178        |          43.1               |           4.39                    |         484.66
 
 
 
@@ -18,7 +18,7 @@ EM3         |    TBD      |       TBD        |          TBD               |     
 
 ***EM0***  
 Period average current    
-![em0_avg_current_period][em0_avg_current_period]  
+![em0_avg_current_period][../Screenshots/EM0/EM0_period.png]  
 Average Current with LED ***off***  
 ![em0_avg_current_ledoff][em0_avg_current_ledoff]  
 Average Current with LED ***on***  

@@ -1,8 +1,12 @@
 /*
- * oscillators.c
+ * Created on: Sep 8, 2022
  *
- *  Created on: Sep 7, 2022
- *      Author: Jahnavi Pinnamaneni; japi8358@colorado.edu
+ * @file  : oscillator.c
+ * @brief : This file initializes the Oscillator and Clock required for LETIMER0 based on the required energy mode.
+ *          EM3: LFA, ULFRCO
+ *          EM0/EM1/EM2: LFA, LFXO
+ * @author: Jahnavi Pinnamaneni; japi8358@colorado.edu
+ *
  */
 
 #include "em_cmu.h"

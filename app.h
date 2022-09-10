@@ -46,14 +46,15 @@
 
 /**********Assignment 2****************************************************/
 //?? Settings should support 7seconds period and 1 second on time
+#include "em_cmu.h"
 
+/****************System Settings*************************/
 #define LOWEST_ENERGY_MODE 3
 #define LETIMER_ON_TIME_MS 175
 #define LETIMER_PERIOD_MS 2250
+/********************************************************/
 
-#define LFXO_FREQ 32768
-#define LFXO_DIV 2000
-
+/****************System Configuration********************/
 #if (LOWEST_ENERGY_MODE == 3)
   #define CMU_OSC cmuOsc_ULFRCO
   #define CMU_CLOCK cmuClock_LFA
@@ -67,13 +68,15 @@
   #define CMU_OSC cmuOsc_LFXO
   #define CMU_CLOCK cmuClock_LFA
   #define CMU_SELECT cmuSelect_LFXO
-  #define CMU_PRESCALER cmuClkDiv_2
+  #define CMU_PRESCALER cmuClkDiv_8
 
+  #define LFXO_FREQ 32768
+  #define LFXO_DIV (CMU_PRESCALER * 1000)
   #define COMP0_VALUE ((LETIMER_PERIOD_MS *LFXO_FREQ)/LFXO_DIV)
   #define COMP1_VALUE ((LETIMER_ON_TIME_MS *LFXO_FREQ)/LFXO_DIV)
 
 #endif
-
+/*************************************************************/
 
 /**************************************************************************//**
  * Application Init.
