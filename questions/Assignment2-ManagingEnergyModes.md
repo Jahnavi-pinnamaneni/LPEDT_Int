@@ -20,41 +20,41 @@ EM3         |    2210      |       178        |          43.1               |   
 Period average current    
 ![em0_avg_current_period](../Screenshots/EM0/EM0_period.png)  
 Average Current with LED ***off***  
-![em0_avg_current_ledoff][em0_avg_current_ledoff]  
+![em0_avg_current_ledoff](../Screenshots/EM0/EM0_period_off.png)  
 Average Current with LED ***on***  
-![em0_avg_current_ledon][em0_avg_current_ledon]  
+![em0_avg_current_ledon](../Screenshots/EM0/EM0_period_on.png)  
 
 ***EM1***  
 Period average current    
-![em1_avg_current_period][em1_avg_current_period]  
+![em1_avg_current_period](../Screenshots/EM1/EM1_period_avg.png)  
 Average Current with LED ***off***  
-![em1_avg_current_ledoff][em1_avg_current_ledoff]  
+![em1_avg_current_ledoff](../Screenshots/EM1/EM1_period_on.png)  
 Average Current with LED ***on***  
-![em1_avg_current_ledon][em1_avg_current_ledon]  
+![em1_avg_current_ledon](../Screenshots/EM1/EM1_period_off.png) 
 
 ***EM2***  
 Period average current  
-![em2_avg_current_period][em2_avg_current_period]  
+![em2_avg_current_period](../Screenshots/EM2/EM2_period.png)  
 Average Current with LED ***off***  
-![em2_avg_current_ledoff][em2_avg_current_ledoff]  
+![em2_avg_current_ledoff](../Screenshots/EM2/EM2_period_off.png)  
 Average Current with LED ***on***  
-![em2_avg_current_ledon][em2_avg_current_ledon]   
+![em2_avg_current_ledon](../Screenshots/EM2/EM2_period_on.png)   
 LED measurement - Period   
-![em2_led_period][em2_led_period]  
+![em2_led_period](../Screenshots/EM2/EM2_period.png)  
 LED measurement - LED on time   
-![em2_led_ledOnTime][em2_led_ledOnTime]  
+![em2_led_ledOnTime](../Screenshots/EM2/EM2_period_on.png)  
 
 ***EM3***  
 Period average current    
-![em3_avg_current_period][em3_avg_current_period]  
+![em3_avg_current_period](../Screenshots/EM3/EM3_period_avg.png)  
 Average Current with LED ***off***  
-![em3_avg_current_period][em3_avg_current_ledoff]   
+![em3_avg_current_period](../Screenshots/EM3/EM3_period_off.png)   
 Average Current with LED ***on***  
-![em3_avg_current_period][em3_avg_current_ledon]   
+![em3_avg_current_period](../Screenshots/EM3/EM3_period_on.png)   
 LED measurement - Period   
-![em3_led_period][em3_led_period]  
+![em3_led_period](../Screenshots/EM3/EM3_period_avg.png)  
 LED measurement - LED on time   
-![em3_led_ledOnTime][em3_led_ledOnTime]  
+![em3_led_ledOnTime](../Screenshots/EM3/EM3_period_on.png)  
 
 [em0_avg_current_period]: screenshots/em0_avg_current_period.jpg "em0_avg_current_period"
 [em0_avg_current_ledoff]: screenshots/em0_avg_current_ledoff.jpg "em0_avg_current_ledoff"
