@@ -13,7 +13,9 @@
 
 #include "oscillators.h"
 
-
+/*
+ * @func: This function initializes Oscillator to either LFXO or ULFRCO based in the energy modes.
+ */
 
 void oscillator_init()
 {

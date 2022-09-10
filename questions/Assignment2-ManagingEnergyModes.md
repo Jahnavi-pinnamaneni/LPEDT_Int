@@ -28,7 +28,7 @@ Average Current with LED ***on***
 Period average current    
 ![em1_avg_current_period](../Screenshots/EM1/EM1_period_avg.png)  
 Average Current with LED ***off***  
-![em1_avg_current_ledoff](../Screenshots/EM1/EM1_period_off.png)  
+![em1_avg_current_ledoff](../Screenshots/EM1/EM1_Period_off.png)  
 Average Current with LED ***on***  
 ![em1_avg_current_ledon](../Screenshots/EM1/EM1_period_on.png) 
 

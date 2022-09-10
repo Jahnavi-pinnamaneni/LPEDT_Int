@@ -9,6 +9,10 @@
 #include "em_letimer.h"
 #include "gpio.h"
 
+/*
+ * @func: This function describes the IRQ Handler for the LETIMER0.
+ */
+
 void LETIMER0_IRQHandler(void)
 {
   uint32_t interrupt_flag;

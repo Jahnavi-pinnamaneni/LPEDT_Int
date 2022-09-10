@@ -11,6 +11,9 @@
 #include "em_letimer.h"
 #include <stdbool.h>
 
+/*
+ * @func: This function initializes the LETIMER0 by enabling the interrupt and loading the COMP0 and COMP1 registers
+ */
 
 void letimer0_init()
 {
