@@ -33,7 +33,8 @@ void gpioLed0SetOn();
 void gpioLed0SetOff();
 void gpioLed1SetOn();
 void gpioLed1SetOff();
-
+void gpioSensor_enSetOn();
+void gpioSensor_enSetOff();
 
 
 

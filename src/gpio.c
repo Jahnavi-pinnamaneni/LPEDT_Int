@@ -33,6 +33,8 @@
 #define LED0_pin   4
 #define LED1_port  gpioPortF
 #define LED1_pin   5
+#define SENSOR_ENABLE_port 3
+#define SENSOR_ENABLE_pin 15
 
 
 
@@ -50,6 +52,8 @@ void gpioInit()
 	GPIO_DriveStrengthSet(LED1_port, gpioDriveStrengthWeakAlternateWeak);
 	GPIO_PinModeSet(LED1_port, LED1_pin, gpioModePushPull, false);
 
+  GPIO_DriveStrengthSet(SENSOR_ENABLE_port, gpioDriveStrengthWeakAlternateWeak);
+  GPIO_PinModeSet(SENSOR_ENABLE_port, SENSOR_ENABLE_pin, gpioModePushPull, false);
 
 
 } // gpioInit()
@@ -78,6 +82,16 @@ void gpioLed1SetOff()
 	GPIO_PinOutClear(LED1_port,LED1_pin);
 }
 
+void gpioSensor_enSetOn()
+{
+  GPIO_PinOutSet(SENSOR_ENABLE_port,SENSOR_ENABLE_pin);
+}
+
+
+void gpioSensor_enSetOff()
+{
+  GPIO_PinOutClear(SENSOR_ENABLE_port,SENSOR_ENABLE_pin);
+}
 
 
 

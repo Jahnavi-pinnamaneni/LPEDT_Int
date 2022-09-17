@@ -50,8 +50,8 @@
 
 /****************System Settings*************************/
 #define LOWEST_ENERGY_MODE 3
-#define LETIMER_ON_TIME_MS 175
-#define LETIMER_PERIOD_MS 2250
+#define LETIMER_ON_TIME_MS 1000
+#define LETIMER_PERIOD_MS 3000
 /********************************************************/
 
 /****************System Configuration********************/

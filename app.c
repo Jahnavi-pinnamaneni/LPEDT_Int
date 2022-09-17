@@ -34,6 +34,7 @@
  *              The MSLA referenced above is in effect.
  *
  ******************************************************************************/
+#include <src/timers.h>
 #include "em_common.h"
 #include "app_assert.h"
 #include "sl_bluetooth.h"
@@ -53,7 +54,8 @@
 #include "src/gpio.h"
 #include "src/lcd.h"
 #include "src/oscillators.h"
-#include "src/timer.h"
+#include "src/scheduler.h"
+#include "src/i2c.h"
 
 
 // Students: Here is an example of how to correctly include logging functions in
@@ -164,7 +166,7 @@ SL_WEAK void app_init(void)
   // Student Edit: Add a call to gpioInit() here
   //gpioInit();
 
-  //Assignment 2
+  //Assignment 3
   gpioInit();
   oscillator_init();
   letimer0_init();
@@ -189,7 +191,7 @@ SL_WEAK void app_init(void)
  * comment out this function. Wait loops are a bad idea in general.
  * We'll discuss how to do this a better way in the next assignment.
  *****************************************************************************/
-static void delayApprox(int delay)
+/*static void delayApprox(int delay)
 {
   volatile int i;
 
@@ -197,7 +199,7 @@ static void delayApprox(int delay)
       i=i+1;
   }
 
-} // delayApprox()
+}*/ // delayApprox()
 
 
 
@@ -215,13 +217,25 @@ SL_WEAK void app_process_action(void)
   //         later assignments.
 /********************Assignment 1******************************/
 //  delayApprox(3500000);
+//  while(1){
+//  timerWaitUs(1000000);
 //  gpioLed0SetOn();
 //  gpioLed1SetOn();
 //  delayApprox(3500000);
-//  gpioLed0SetOff();
+//  timerWaitUs(1000000);
+//  gpioLed0SetOff();}
 //  //gpioLed1SetOff();
 /*******************Assignment 1******************************/
 
+/**********************Assignment 3*************************/
+  uint32_t event;
+  event = schedulerGetEvent();
+  switch(event)
+  {
+    case evtTimerUF:
+      i2c_read_temp();
+      break;
+  }
 } // app_process_action()
 
 
