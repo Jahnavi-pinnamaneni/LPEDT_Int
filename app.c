@@ -57,7 +57,6 @@
 #include "src/scheduler.h"
 #include "src/i2c.h"
 
-
 // Students: Here is an example of how to correctly include logging functions in
 //           each .c file.
 //           Apply this technique to your other .c files.
@@ -171,14 +170,16 @@ SL_WEAK void app_init(void)
   oscillator_init();
   letimer0_init();
   NVIC_ClearPendingIRQ(LETIMER0_IRQn);
+  //NVIC_ClearPendingIRQ(I2C0_IRQn );
+
   NVIC_EnableIRQ(LETIMER0_IRQn);
+  //NVIC_EnableIRQ(I2C0_IRQn);
 
 #if (LOWEST_ENERGY_MODE == 1)
     sl_power_manager_add_em_requirement(SL_POWER_MANAGER_EM1);
 #elif (LOWEST_ENERGY_MODE == 2)
     sl_power_manager_add_em_requirement(SL_POWER_MANAGER_EM2);
 #endif
-
 
 } // app_init()
 
@@ -215,27 +216,11 @@ SL_WEAK void app_process_action(void)
   // Notice: This function is not passed or has access to Bluetooth stack events.
   //         We will create/use a scheme that is far more energy efficient in
   //         later assignments.
-/********************Assignment 1******************************/
-//  delayApprox(3500000);
-//  while(1){
-//  timerWaitUs(1000000);
-//  gpioLed0SetOn();
-//  gpioLed1SetOn();
-//  delayApprox(3500000);
-//  timerWaitUs(1000000);
-//  gpioLed0SetOff();}
-//  //gpioLed1SetOff();
-/*******************Assignment 1******************************/
+  uint32_t evt;
 
-/**********************Assignment 3*************************/
-  uint32_t event;
-  event = schedulerGetEvent();
-  switch(event)
-  {
-    case evtTimerUF:
-      i2c_read_temp();
-      break;
-  }
+  evt = schedulerGetEvent();
+  temperature_state_machine(evt);
+
 } // app_process_action()
 
 

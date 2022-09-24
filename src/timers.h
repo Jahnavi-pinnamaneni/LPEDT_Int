@@ -28,6 +28,14 @@ void letimer0_init(void);
  * @params: the required time delay in microseconds
  * @return: none
  */
-void timerWaitUs(uint32_t us_wait);
+void timerWaitUs_polled(uint32_t us_wait);
+
+
+/*
+ * @desc: This function provides a delay for the specified amount of time in a non-blocking fashion
+ * @params: the required amount of delay in microseconds within the range 1ms to 3sec
+ * @return: none
+ */
+void timerWaitUs_irq(uint32_t us_wait);
 
 #endif /* SRC_TIMERS_H_ */

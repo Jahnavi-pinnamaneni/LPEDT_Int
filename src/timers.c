@@ -38,13 +38,13 @@ void letimer0_init(void)
   /*****************************************************************************************************/
 
   LETIMER_CompareSet(LETIMER0, 0, COMP0_VALUE);
-  //LETIMER_CompareSet(LETIMER0, 1, COMP1_VALUE);
-
 
   LETIMER_IntClear (LETIMER0, 0xFFFFFFFF);
   LETIMER_IntEnable(LETIMER0,LETIMER_IF_UF);
-  //LETIMER_IntEnable(LETIMER0,LETIMER_IF_COMP1);
+
   LETIMER_Enable(LETIMER0, true);
+
+
 
 
   /*temp_count = LETIMER_CounterGet(LETIMER0);
@@ -59,7 +59,7 @@ void letimer0_init(void)
  *        is 1ms.
  *        Hence the range within which this function can provide the delay is 1ms to 3sec
  */
-void timerWaitUs(uint32_t us_wait)
+void timerWaitUs_polled(uint32_t us_wait)
 {
   uint32_t prev_cnt = 0;
   uint32_t curr_cnt = 0;
@@ -85,5 +85,31 @@ void timerWaitUs(uint32_t us_wait)
 
 }
 
+/*
+ * @desc: This function provides a delay for the specified amount of time in a non-blocking fashion
+ */
 
+void timerWaitUs_irq(uint32_t us_wait)
+{
+  uint32_t prev_cnt = 0;
+  uint32_t curr_cnt = 0;
+  uint32_t new_wait = 0;
+  us_wait = us_wait/MS_DIV;
+  if((us_wait == 0) || (us_wait > LETIMER_PERIOD_MS))
+  {
+      LOG_ERROR("Enter the delay time within the range 1ms to 3secs");
+      return;
+  }
+  prev_cnt = LETIMER_CounterGet(LETIMER0);
 
+  if(us_wait <= prev_cnt)
+    new_wait = prev_cnt - us_wait;
+  else
+    new_wait = LETIMER_PERIOD_MS- us_wait - prev_cnt;
+
+  LETIMER_CompareSet(LETIMER0, 1, new_wait);
+
+  LETIMER_IntClear(LETIMER0, LETIMER_IF_COMP1);
+  LETIMER_IntEnable(LETIMER0,LETIMER_IEN_COMP1);
+  LETIMER0->IEN |= LETIMER_IEN_COMP1;
+}

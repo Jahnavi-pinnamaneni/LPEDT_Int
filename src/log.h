@@ -29,7 +29,7 @@
 
 #include "app_log.h"   // for LOG_INFO() / printf() / app_log() output the VCOM port
 #include "sl_status.h" // for sl_status_print()
-
+#include "irq.h"       // for letimerMilliseconds()
 
 #ifndef LOG_ERROR
 #define LOG_ERROR(message,...) \

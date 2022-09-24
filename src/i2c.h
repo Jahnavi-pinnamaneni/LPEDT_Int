@@ -41,4 +41,16 @@ void i2c_read(void);
  */
 void i2c_read_temp();
 
+/*
+ * @desc: This function performs I2C write in a non-blocking method
+ * @params: none
+ * @return: none
+ */
+void i2c_write_irq(uint8_t data);
+/*
+ * @desc: This function performs I2C read in a non-blocking method
+ * @params: none
+ * @return: read data
+ */
+void i2c_read_irq(void);
 #endif /* SRC_I2C_H_ */
