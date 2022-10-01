@@ -6,27 +6,28 @@ See [Mastering Markdown](https://guides.github.com/features/mastering-markdown/)
 *Please include screenshots of the profiler window detailing each current measurement captured.  See the file Instructions to add screenshots in assignment.docx in the ECEN 5823 Student Public Folder.*
 
 1. Provide screen shot verifying the Advertising period matches the values required for the assignment.
-   <br>Screenshot:  
-   ![advertising_period](screenshots/assignment5/advertising_period.png)  
+   <br>Screenshot:  250ms
+   ![advertising_period](Screenshots/Assignment_5/Adv_period.png)  
 
 2. What is the average current between advertisements?
-   Answer:
+   Answer: 2.21uA
    <br>Screenshot:  
-   ![avg_current_between_advertisements](screenshots/assignment5/avg_current_between_advertisements.png)  
+   ![avg_current_between_advertisements](Screenshots/Assignment_5/Avg_cur_btw_adv.png)  
 
 3. What is the peak current of an advertisement? 
-   Answer:
+   Answer: 4.18mA
    <br>Screenshot:  
-   ![peak_current_of_advertisement](screenshots/assignment5/peak_current_of_advertisement.png)  
+   ![peak_current_of_advertisement](Screenshots/Assignment_5/Peak_cur_adv.png)  
 
 4. Provide screen shot showing the connection interval settings. Do they match the values you set in your slave(server) code or the master's(client) values?.
+Answer: 33ms, No they don't match.
    <br>Screenshot: 
-   ![connection_interval](screenshots/assignment5/connection_interval.png)  
+   ![connection_interval](Screenshots/Assignment_5/connection_interval.png)  
 
 5. What is the average current between connection intervals?
-   Answer:
+   Answer: 1.49uA
    <br>Screenshot:  
-   ![avg_current_between_connection_intervals](screenshots/assignment5/avg_current_between_connection_intervals.png)  
+   ![avg_current_between_connection_intervals](Screenshots/Assignment_5/con_avg_curr.png)  
 
 6. If possible, provide screen shot verifying the slave latency matches what was reported when you logged the values from event = gecko_evt_le_connection_parameters_id. 
    <br>Screenshot:  

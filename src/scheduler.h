@@ -16,7 +16,7 @@
 #include "sl_bt_api.h"
 #include "ble.h"
 #include "gatt_db.h"
-#include "app_log.h"
+#include "app_assert.h"
 
 /* This enum will have values like 0, 2, 4, 8, 16, 32 */
 typedef enum {
@@ -60,5 +60,6 @@ uint32_t schedulerGetEvent(void);
  * @return: none
  */
 void temperature_state_machine(sl_bt_msg_t *evt);
+//void temperature_state_machine(scheduler_evt_t evt);
 
 #endif /* SRC_SCHEDULER_H_ */
