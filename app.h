@@ -49,7 +49,7 @@
 #include "em_cmu.h"
 
 /****************System Settings*************************/
-#define LOWEST_ENERGY_MODE 3
+#define LOWEST_ENERGY_MODE 2
 #define LETIMER_ON_TIME_MS 1000
 #define LETIMER_PERIOD_MS 3000
 /********************************************************/

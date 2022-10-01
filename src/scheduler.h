@@ -13,6 +13,10 @@
 #include "timers.h"
 #include "i2c.h"
 #include "sl_power_manager.h"
+#include "sl_bt_api.h"
+#include "ble.h"
+#include "gatt_db.h"
+#include "app_log.h"
 
 /* This enum will have values like 0, 2, 4, 8, 16, 32 */
 typedef enum {
@@ -55,6 +59,6 @@ uint32_t schedulerGetEvent(void);
  * @params: the most recent event
  * @return: none
  */
-void temperature_state_machine(scheduler_evt_t evt);
+void temperature_state_machine(sl_bt_msg_t *evt);
 
 #endif /* SRC_SCHEDULER_H_ */

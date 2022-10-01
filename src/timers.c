@@ -92,7 +92,6 @@ void timerWaitUs_polled(uint32_t us_wait)
 void timerWaitUs_irq(uint32_t us_wait)
 {
   uint32_t prev_cnt = 0;
-  uint32_t curr_cnt = 0;
   uint32_t new_wait = 0;
   us_wait = us_wait/MS_DIV;
   if((us_wait == 0) || (us_wait > LETIMER_PERIOD_MS))
