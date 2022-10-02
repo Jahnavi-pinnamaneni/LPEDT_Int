@@ -32,7 +32,7 @@ ble_data_struct_t * return_ble_data_struct()
  */
 void handle_ble_event(sl_bt_msg_t * evt)
 {
-  sl_status_t sc;
+  sl_status_t sc = 0;
   bd_addr address;
   uint8_t address_type;
   uint8_t system_id[8];
@@ -40,7 +40,7 @@ void handle_ble_event(sl_bt_msg_t * evt)
 
   ble_data_ptr = return_ble_data_struct();
 
-  ble_data_ptr->advertisingSetHandle = 0xFF;
+
 
   if(SL_BT_MSG_ID(evt->header) == sl_bt_evt_system_external_signal_id)
     {
@@ -62,7 +62,11 @@ void handle_ble_event(sl_bt_msg_t * evt)
 
       // Extract unique ID from BT Address.
       sc = sl_bt_system_get_identity_address(&address, &address_type);
-      app_assert_status(sc);
+      //app_assert_status(sc);
+      if(sc != SL_STATUS_OK)
+        {
+          LOG_ERROR("ERROR\r\n");
+        }
 
       // Pad and reverse unique ID to get System ID.
       system_id[0] = address.addr[5];
@@ -78,8 +82,11 @@ void handle_ble_event(sl_bt_msg_t * evt)
                                                    0,
                                                    sizeof(system_id),
                                                    system_id);
-      app_assert_status(sc);
-
+      //app_assert_status(sc);
+      if(sc != SL_STATUS_OK)
+        {
+          LOG_ERROR("ERROR\r\n");
+        }
       LOG_INFO("Bluetooth %s address: %02X:%02X:%02X:%02X:%02X:%02X\r\n",
                    address_type ? "static random" : "public device",
                    address.addr[5],
@@ -88,11 +95,14 @@ void handle_ble_event(sl_bt_msg_t * evt)
                    address.addr[2],
                    address.addr[1],
                    address.addr[0]);
-
+      ble_data_ptr->advertisingSetHandle = 0xFF;
       // Create an advertising set.
       sc = sl_bt_advertiser_create_set(&(ble_data_ptr->advertisingSetHandle));
-      app_assert_status(sc);
-
+      //app_assert_status(sc);
+      if(sc != SL_STATUS_OK)
+        {
+          LOG_ERROR("ERROR\r\n");
+        }
       // Set advertising interval to 250ms.
       sc = sl_bt_advertiser_set_timing(
           ble_data_ptr->advertisingSetHandle, // advertising set handle
@@ -100,22 +110,39 @@ void handle_ble_event(sl_bt_msg_t * evt)
         ADVERTISING_INTERVAL, // max. adv. interval (milliseconds * 1.6)
         0,   // adv. duration
         0);  // max. num. adv. events
-      app_assert_status(sc);
+      //app_assert_status(sc);
+      if(sc != SL_STATUS_OK)
+        {
+          LOG_ERROR("ERROR\r\n");
+        }
+
       // Start general advertising and enable connections.
       sc = sl_bt_advertiser_start(
           ble_data_ptr->advertisingSetHandle,
         sl_bt_advertiser_general_discoverable,
         sl_bt_advertiser_connectable_scannable);
-      app_assert_status(sc);
-      LOG_INFO("Started advertising\r\n");
+     // app_assert_status(sc);
+      if(sc != SL_STATUS_OK)
+        {
+          LOG_ERROR("ERROR\r\n");
+        }
+      else
+        {
+          LOG_INFO("Started advertising\r\n");
+        }
+
       break;
 
     // -------------------------------
     // This event indicates that a new connection was opened.
     case sl_bt_evt_connection_opened_id:
-      LOG_INFO("Connection opened\n");
+      LOG_INFO("Connection opened \r\n");
       sc = sl_bt_advertiser_stop(ble_data_ptr->advertisingSetHandle);
       //app_assert_status(sc);
+      if(sc != SL_STATUS_OK)
+        {
+          LOG_ERROR("ERROR\r\n");
+        }
       //Set connection parameters like the  Connection Interval Max and Min and the Slave Latency
       sc = sl_bt_connection_set_parameters(
           evt->data.evt_connection_opened.connection,
@@ -126,7 +153,14 @@ void handle_ble_event(sl_bt_msg_t * evt)
           0,
           0xffff
           );
-      //app_assert_status(sc);
+//      app_assert_status(sc);
+      if(sc != SL_STATUS_OK)
+        {
+          LOG_ERROR("ERROR\r\n");
+        }
+      else
+        LOG_INFO("Set parameters complete\r\n");
+
       ble_data_ptr->connection_handle = evt->data.evt_connection_opened.connection;
       ble_data_ptr->connection_status = true;
 
@@ -140,6 +174,7 @@ void handle_ble_event(sl_bt_msg_t * evt)
 
       break;
 
+
     // -------------------------------
     // This event indicates that a connection was closed.
     case sl_bt_evt_connection_closed_id:
@@ -150,8 +185,15 @@ void handle_ble_event(sl_bt_msg_t * evt)
           ble_data_ptr->advertisingSetHandle,
         sl_bt_advertiser_general_discoverable,
         sl_bt_advertiser_connectable_scannable);
-      app_assert_status(sc);
-      LOG_INFO("Started advertising\n");
+     // app_assert_status(sc);
+      if(sc != SL_STATUS_OK)
+        {
+          LOG_ERROR("ERROR\r\n");
+        }
+      else{
+          LOG_INFO("Started advertising\n");
+      }
+
       break;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -161,9 +203,9 @@ void handle_ble_event(sl_bt_msg_t * evt)
       LOG_INFO("\r\n connection_handle: %d, \r\n interval: %d ms,\r\n latency: %d "
           "\r\n, timeout: %d ms, \r\n security_mode: %d, \r\n txsize: %d\r\n",
            evt->data.evt_connection_parameters.connection,
-           evt->data.evt_connection_parameters.interval * 1.25,
+           evt->data.evt_connection_parameters.interval,
            evt->data.evt_connection_parameters.latency,
-           evt->data.evt_connection_parameters.timeout * 10,
+           evt->data.evt_connection_parameters.timeout,
            evt->data.evt_connection_parameters.security_mode,
            evt->data.evt_connection_parameters.txsize);
       break;
@@ -179,11 +221,12 @@ void handle_ble_event(sl_bt_msg_t * evt)
                   {
                     ble_data_ptr->connection_handle = evt->data.evt_gatt_server_characteristic_status.connection;
                     ble_data.indication_flag = true;
+                    LOG_INFO("Indications Enabled %d\n\r",0);
                   }
                 else
                   {
                     ble_data.indication_flag = false;
-                    //LOG_INFO("Indications Disabled %d\n\r",0);
+                    LOG_INFO("Indications Disabled %d\n\r",0);
                   }
               }
       break;

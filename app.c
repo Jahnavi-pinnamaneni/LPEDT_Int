@@ -259,7 +259,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
 
   // sequence through states driven by events
    temperature_state_machine(evt);    // put this code in scheduler.c/.h
-   LOG_INFO("\r\n");
+  // LOG_INFO("\r\n");
 
 
 } // sl_bt_on_event()

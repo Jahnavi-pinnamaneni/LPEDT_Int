@@ -6,7 +6,7 @@
 
 #include "i2c.h"
 
-//#define INCLUDE_LOG_DEBUG 1
+#define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
 
 #define CMD_DATA_TO_READ 0xF3

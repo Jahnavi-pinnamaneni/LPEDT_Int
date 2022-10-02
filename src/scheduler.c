@@ -118,6 +118,7 @@ void temperature_state_machine(sl_bt_msg_t *event)
       evt = event->data.evt_system_external_signal.extsignals;
       if(ble_data_ptr->indication_flag && ble_data_ptr->connection_status)
         {
+          LOG_INFO("INSIDE THE TEMP_STATE_MACHINE\r\n");
           switch(current_state)
                   {
                     case idle:
@@ -171,7 +172,7 @@ void temperature_state_machine(sl_bt_msg_t *event)
 
                                   temp_data = (int)( ((MULTIPLIER * read)/MAX_RES) - CONSTANT );
 
-                                  //temp_in_c = (uint32_t)temp_data;
+                                  temp_in_c = (uint32_t)temp_data;
                                   htm_temperature_flt = UINT32_TO_FLOAT(temp_data*1000, -3);
                                   UINT8_TO_BITSTREAM(p, flags);
                                   UINT32_TO_BITSTREAM(p, htm_temperature_flt);
@@ -207,8 +208,17 @@ void temperature_state_machine(sl_bt_msg_t *event)
                                 }
                               break;
                   }
+          current_state = next_state;
         }
-        current_state = next_state;
+      else
+        {
+          if(current_state != idle)
+            {
+              current_state = idle;
+              gpioSensor_enSetOff();
+            }
+
+        }
     }
 
 }
