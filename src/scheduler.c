@@ -7,7 +7,7 @@
 #include "scheduler.h"
 
 
-#define INCLUDE_LOG_DEBUG 1
+//#define INCLUDE_LOG_DEBUG 1
 #include "log.h"
 
 
@@ -96,6 +96,10 @@ uint32_t schedulerGetEvent(void)
   return next_evt;
 }
 
+
+/*
+ * This state machine handles all the events related to temperature measurement
+ */
 void temperature_state_machine(sl_bt_msg_t *event)
 {
   static state_t current_state = idle;
@@ -106,19 +110,25 @@ void temperature_state_machine(sl_bt_msg_t *event)
   sl_status_t sc = 0;
   ble_data_struct_t *ble_data_ptr;
   ble_data_ptr = return_ble_data_struct();
+
   uint8_t htm_temperature_buffer[5];
   uint8_t *p = htm_temperature_buffer;
   uint32_t htm_temperature_flt;
+
   uint8_t flags = 0x00;
   scheduler_evt_t evt = 0;
 
-
+  // This state machine acts only on the events under the external signal header
+  // Any other events are ignored
   if(SL_BT_MSG_ID(event->header) == sl_bt_evt_system_external_signal_id)
     {
       evt = event->data.evt_system_external_signal.extsignals;
+
+      //The temperature measurement must be performed only if the indication is
+      //enabled and the connection is open
       if(ble_data_ptr->indication_flag && ble_data_ptr->connection_status)
         {
-          LOG_INFO("INSIDE THE TEMP_STATE_MACHINE\r\n");
+          LOG_INFO("\n");
           switch(current_state)
                   {
                     case idle:
@@ -172,39 +182,40 @@ void temperature_state_machine(sl_bt_msg_t *event)
 
                                   temp_data = (int)( ((MULTIPLIER * read)/MAX_RES) - CONSTANT );
 
+                                  //temperature data is converted to a format that can be used
+                                  //to transmit over the BLE Stack
                                   temp_in_c = (uint32_t)temp_data;
                                   htm_temperature_flt = UINT32_TO_FLOAT(temp_data*1000, -3);
                                   UINT8_TO_BITSTREAM(p, flags);
                                   UINT32_TO_BITSTREAM(p, htm_temperature_flt);
-                                  LOG_INFO("Temperature %f\r\n", (float)htm_temperature_flt);
+
+                                  //LOG_INFO("Temperature %f\r\n", (float)htm_temperature_flt);
+
+                                  //Update the temperature value to the gatt database
                                   sc = sl_bt_gatt_server_write_attribute_value(
                                     gattdb_temperature_measurement, // handle from gatt_db.h
                                     0, // offset
                                     4, // length
-                                    &temp_in_c // pointer to buffer where data is
+                                    (uint8_t *)&temp_in_c // pointer to buffer where data is
                                   );
+                                  if (sc != SL_STATUS_OK) {
+                                      LOG_ERROR("Updating GATT DB unsuccessful/r/n");
+                                  }
+                                  sc = sl_bt_gatt_server_send_indication(
+                                    ble_data_ptr->connection_handle,
+                                    gattdb_temperature_measurement, // handle from gatt_db.h
+                                    sizeof(htm_temperature_buffer),
+                                    &htm_temperature_buffer[0] // in IEEE-11073 format
+                                  );
+                                  if (sc != SL_STATUS_OK) {
+                                      LOG_ERROR("Indication not successful/r/n");
+                                  }
+                                  else {
+                                      ble_data_ptr->indication_in_flight = true;
+                                  }
+                                LOG_INFO("\r\nTemperature Reading = %d",temp_data);
 
-                                  app_assert_status(sc);
-
-                                    sc = sl_bt_gatt_server_send_indication(
-                                      ble_data_ptr->connection_handle,
-                                      gattdb_temperature_measurement, // handle from gatt_db.h
-                                      sizeof(htm_temperature_buffer),
-                                      htm_temperature_buffer // in IEEE-11073 format
-                                    );
-                                    app_assert_status(sc);
-
-                                    sc = sl_bt_gatt_server_write_attribute_value(
-                                      gattdb_temperature_measurement, // handle from gatt_db.h
-                                      0,
-                                      5,
-                                      p // in IEEE-11073 format
-                                    );
-                                    app_assert_status(sc);
-
-                                  LOG_INFO("Temperature Reading = %d\r\n",temp_data);
-
-                                  next_state = idle;
+                                next_state = idle;
                                 }
                               break;
                   }
@@ -212,6 +223,8 @@ void temperature_state_machine(sl_bt_msg_t *event)
         }
       else
         {
+          //If the indication and connection status are false then the state
+          //machine reverts to idle state
           if(current_state != idle)
             {
               current_state = idle;

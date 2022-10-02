@@ -250,16 +250,8 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
   // For A5 uncomment the next 2 function calls
    handle_ble_event(evt); // put this code in ble.c/.h
 
-//   if(SL_BT_MSG_ID(evt->header) == sl_bt_evt_system_external_signal_id)
-//   {
-//       scheduler_evt_t event = evt->data.evt_system_external_signal.extsignals;
-//
-//       LOG_INFO("Temp Machine = %d\n",evt);
-//   }
-
   // sequence through states driven by events
    temperature_state_machine(evt);    // put this code in scheduler.c/.h
-  // LOG_INFO("\r\n");
 
 
 } // sl_bt_on_event()

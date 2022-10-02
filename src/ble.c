@@ -10,11 +10,16 @@
 // BLE private data
 ble_data_struct_t ble_data;
 
-#define GATTDB_SYSTEM_ID 18
-#define ADVERTISING_INTERVAL 400   //This value is converted to suit the format that is required by the function (250ms * 1.6)
-#define CONNECTION_INTERVAL 60 //60,60,3,75 This value converted to suit the format that is required by the function (75ms * 1.25)
-#define SALVE_LATENCY 3
-#define SUPERVISION_TIMEOUT 75  //((1 + slave latency) * (connection_interval * 2) * 10) ms
+#define GATTDB_SYSTEM_ID      18
+#define ADVERTISING_INTERVAL  400   //This value is converted to suit the format
+                                    //that is required by the function (250ms * 1.6)
+
+#define CONNECTION_INTERVAL   60    //Time = Value x 1.25 ms
+
+#define SALVE_LATENCY         3     //which defines how many connection intervals
+                                    //the peripheral can skip if it has no data to send
+
+#define SUPERVISION_TIMEOUT   75    //(1 + @p latency) * max_interval * 2
 
 
 /*
@@ -41,13 +46,15 @@ void handle_ble_event(sl_bt_msg_t * evt)
   ble_data_ptr = return_ble_data_struct();
 
 
-
+// If the event is related to external signals then it is handled in the
+// temperature_state_machine. We ignore these events in this handler in the best
+// interest of isolation of functionality
   if(SL_BT_MSG_ID(evt->header) == sl_bt_evt_system_external_signal_id)
     {
       return;
     }
 
-  // Handle stack events
+  // State machine to handle all stack events
   switch (SL_BT_MSG_ID(evt->header)) {
     // -------------------------------
     // This event indicates the device has started and the radio is ready.
@@ -62,10 +69,9 @@ void handle_ble_event(sl_bt_msg_t * evt)
 
       // Extract unique ID from BT Address.
       sc = sl_bt_system_get_identity_address(&address, &address_type);
-      //app_assert_status(sc);
       if(sc != SL_STATUS_OK)
         {
-          LOG_ERROR("ERROR\r\n");
+          LOG_ERROR("ERROR: Get_identity address\r\n");
         }
 
       // Pad and reverse unique ID to get System ID.
@@ -82,11 +88,11 @@ void handle_ble_event(sl_bt_msg_t * evt)
                                                    0,
                                                    sizeof(system_id),
                                                    system_id);
-      //app_assert_status(sc);
       if(sc != SL_STATUS_OK)
         {
-          LOG_ERROR("ERROR\r\n");
+          LOG_ERROR("ERROR: write_attribute_value\r\n");
         }
+
       LOG_INFO("Bluetooth %s address: %02X:%02X:%02X:%02X:%02X:%02X\r\n",
                    address_type ? "static random" : "public device",
                    address.addr[5],
@@ -95,22 +101,22 @@ void handle_ble_event(sl_bt_msg_t * evt)
                    address.addr[2],
                    address.addr[1],
                    address.addr[0]);
+
       ble_data_ptr->advertisingSetHandle = 0xFF;
       // Create an advertising set.
       sc = sl_bt_advertiser_create_set(&(ble_data_ptr->advertisingSetHandle));
-      //app_assert_status(sc);
       if(sc != SL_STATUS_OK)
         {
-          LOG_ERROR("ERROR\r\n");
+          LOG_ERROR("ERROR: adverstiser_create_set\r\n");
         }
+
       // Set advertising interval to 250ms.
       sc = sl_bt_advertiser_set_timing(
-          ble_data_ptr->advertisingSetHandle, // advertising set handle
-        ADVERTISING_INTERVAL, // min. adv. interval (milliseconds * 1.6)
-        ADVERTISING_INTERVAL, // max. adv. interval (milliseconds * 1.6)
-        0,   // adv. duration
-        0);  // max. num. adv. events
-      //app_assert_status(sc);
+        ble_data_ptr->advertisingSetHandle, // advertising set handle
+        ADVERTISING_INTERVAL,     // min. adv. interval (milliseconds * 1.6)
+        ADVERTISING_INTERVAL,     // max. adv. interval (milliseconds * 1.6)
+        0,                        // adv. duration
+        0);                       // max. num. adv. events
       if(sc != SL_STATUS_OK)
         {
           LOG_ERROR("ERROR\r\n");
@@ -121,7 +127,6 @@ void handle_ble_event(sl_bt_msg_t * evt)
           ble_data_ptr->advertisingSetHandle,
         sl_bt_advertiser_general_discoverable,
         sl_bt_advertiser_connectable_scannable);
-     // app_assert_status(sc);
       if(sc != SL_STATUS_OK)
         {
           LOG_ERROR("ERROR\r\n");
@@ -137,30 +142,36 @@ void handle_ble_event(sl_bt_msg_t * evt)
     // This event indicates that a new connection was opened.
     case sl_bt_evt_connection_opened_id:
       LOG_INFO("Connection opened \r\n");
+
+      // Stop the the advertiser once the connection is established
       sc = sl_bt_advertiser_stop(ble_data_ptr->advertisingSetHandle);
-      //app_assert_status(sc);
       if(sc != SL_STATUS_OK)
         {
           LOG_ERROR("ERROR\r\n");
         }
-      //Set connection parameters like the  Connection Interval Max and Min and the Slave Latency
+
+      // Set connection parameters like the  Connection Interval Max and Min and
+      // the Slave Latency
       sc = sl_bt_connection_set_parameters(
           evt->data.evt_connection_opened.connection,
-          CONNECTION_INTERVAL,   //Time = Value x 1.25 ms
-          CONNECTION_INTERVAL,   //Time = Value x 1.25 ms
+          CONNECTION_INTERVAL,
+          CONNECTION_INTERVAL,
           SALVE_LATENCY,
           SUPERVISION_TIMEOUT,
           0,
           0xffff
           );
-//      app_assert_status(sc);
       if(sc != SL_STATUS_OK)
         {
           LOG_ERROR("ERROR\r\n");
         }
       else
-        LOG_INFO("Set parameters complete\r\n");
+        {
+          LOG_INFO("Set parameters complete\r\n");
+        }
 
+
+      // Update the ble data structure to reflect the connection status
       ble_data_ptr->connection_handle = evt->data.evt_connection_opened.connection;
       ble_data_ptr->connection_status = true;
 
@@ -179,13 +190,14 @@ void handle_ble_event(sl_bt_msg_t * evt)
     // This event indicates that a connection was closed.
     case sl_bt_evt_connection_closed_id:
       LOG_INFO("Connection closed\n");
+
+      // Update the connection status when connection is closed
       ble_data_ptr->connection_status = false;
       // Restart advertising after client has disconnected.
       sc = sl_bt_advertiser_start(
-          ble_data_ptr->advertisingSetHandle,
+        ble_data_ptr->advertisingSetHandle,
         sl_bt_advertiser_general_discoverable,
         sl_bt_advertiser_connectable_scannable);
-     // app_assert_status(sc);
       if(sc != SL_STATUS_OK)
         {
           LOG_ERROR("ERROR\r\n");
@@ -196,9 +208,7 @@ void handle_ble_event(sl_bt_msg_t * evt)
 
       break;
 
-    ///////////////////////////////////////////////////////////////////////////
-    // Add additional event handlers here as your application requires!      //
-    ///////////////////////////////////////////////////////////////////////////
+    // This event occurs once the connection parameters are set.
     case sl_bt_evt_connection_parameters_id:
       LOG_INFO("\r\n connection_handle: %d, \r\n interval: %d ms,\r\n latency: %d "
           "\r\n, timeout: %d ms, \r\n security_mode: %d, \r\n txsize: %d\r\n",
@@ -209,35 +219,56 @@ void handle_ble_event(sl_bt_msg_t * evt)
            evt->data.evt_connection_parameters.security_mode,
            evt->data.evt_connection_parameters.txsize);
       break;
+
+    // Every time the client configuration is changed we check if the indication
+    // flag is set or if the characteristic confirmation is received.
       /***********************************************************************************
        * Borrowed the following code snippet from Varun Mehta
        ***********************************************************************************/
     case sl_bt_evt_gatt_server_characteristic_status_id:
-      if(evt->data.evt_gatt_server_characteristic_status.characteristic == gattdb_temperature_measurement &&
-                evt->data.evt_gatt_server_characteristic_status.status_flags == sl_bt_gatt_server_client_config)
+      // Check if the characteristic is temperature measurement and if Characteristic
+      // configuration is changed
+      if(evt->data.evt_gatt_server_characteristic_status.characteristic ==
+          gattdb_temperature_measurement && evt->data.evt_gatt_server_characteristic_status.
+          status_flags == sl_bt_gatt_server_client_config)
               {
-                //Indications are enabled
-                if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_indication)
+                // Check if Indications are enabled
+                if(evt->data.evt_gatt_server_characteristic_status.client_config_flags
+                    == sl_bt_gatt_server_indication)
                   {
-                    ble_data_ptr->connection_handle = evt->data.evt_gatt_server_characteristic_status.connection;
+                    ble_data_ptr->connection_handle = evt->data.
+                        evt_gatt_server_characteristic_status.connection;
                     ble_data.indication_flag = true;
-                    LOG_INFO("Indications Enabled %d\n\r",0);
+                    LOG_INFO("Indications Enabled\n\r");
                   }
                 else
                   {
                     ble_data.indication_flag = false;
-                    LOG_INFO("Indications Disabled %d\n\r",0);
+                    LOG_INFO("Indications Disabled \n\r");
                   }
               }
+      // Check if the characteristic is temperature measurement and if characteristic
+      // confirmation has been received. This implies that the indication has been
+      // sent successfully hence the indication_in_flight flag is set to false
+      else if(evt->data.evt_gatt_server_characteristic_status.characteristic ==
+          gattdb_temperature_measurement && evt->data.evt_gatt_server_characteristic_status.
+          status_flags == sl_bt_gatt_server_confirmation)
+        {
+            LOG_INFO("Indications Complete \n\r");
+            ble_data_ptr->indication_in_flight = false;
+        }
       break;
 
-//    case sl_bt_evt_gatt_server_indication_timeout_id:
-//      if(ble_data_ptr->indication_in_flight)
-//        {
-//          LOG_ERROR("Indication in Flight\r\n");
-//          ble_data_ptr->indication_in_flight = false;
-//        }
-//       break;
+    // This event occurs when the confirmation for an indication has not been received
+    // The BLE server does not send further indications hence the indication_in_flight
+    // flag is set to false
+    case sl_bt_evt_gatt_server_indication_timeout_id:
+      if(ble_data_ptr->indication_in_flight)
+        {
+          LOG_ERROR("Indication TIMEOUT occurred\r\n");
+          ble_data_ptr->indication_in_flight = false;
+        }
+       break;
 
     // -------------------------------
     // Default event handler.
