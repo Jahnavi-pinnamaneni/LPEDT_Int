@@ -6,8 +6,10 @@
 
 #include "scheduler.h"
 
+#include "src/gpio.h"
 
-#define INCLUDE_LOG_DEBUG 1
+
+//#define INCLUDE_LOG_DEBUG 1
 #include "log.h"
 
 
@@ -128,7 +130,7 @@ void temperature_state_machine(sl_bt_msg_t *event)
       //enabled and the connection is open
       if(ble_data_ptr->indication_flag && ble_data_ptr->connection_status)
         {
-          LOG_INFO("\n");
+          //DOS LOG_INFO("\n");
           switch(current_state)
                   {
                     case idle:
@@ -136,17 +138,19 @@ void temperature_state_machine(sl_bt_msg_t *event)
                               if(evt == evtTimerUF)
                                 {
                                   gpioSensor_enSetOn();
-                                  timerWaitUs_irq(SENSOR_ENABLE_TIME);
+                                  timerWaitUs_irq(SENSOR_ENABLE_TIME*2); // DOS actual delay time is approx 1/2 of requested delay time.
                                   next_state = sensor_enable;
+                                  LOG_INFO("To1");
                                 }
                               break;
                     case sensor_enable:
                                next_state = sensor_enable;
                                if(evt == evtTimerCOMP1)
                                  {
+                                   sl_power_manager_add_em_requirement(SL_POWER_MANAGER_EM1); // DOS add power requirement before initiating the I2C transfer
                                    i2c_write_irq(CMD_DATA_TO_READ);
-                                   sl_power_manager_add_em_requirement(SL_POWER_MANAGER_EM1);
                                    next_state = i2c_write_state;
+                                   LOG_INFO("To2");
                                  }
                                break;
                     case i2c_write_state:
@@ -155,17 +159,29 @@ void temperature_state_machine(sl_bt_msg_t *event)
                                 {
                                   NVIC_DisableIRQ(I2C0_IRQn);
                                   sl_power_manager_remove_em_requirement(SL_POWER_MANAGER_EM1);
-                                  timerWaitUs_irq(TEMP_MEAS_TIME);
+                                  timerWaitUs_irq(TEMP_MEAS_TIME*2); // DOS - Your timerWaitUs_irq() function was waiting 5.62 ms instead of 10.8ms
+                                                                     // resulting in your code attempting to read the 7021 temp value before the 7021 was
+                                                                     // was done completing the temp measurement. And your state machine got stuck
+                                                                     // in i2c_writecomplete state, waiting for an I2C completion event that will
+                                                                     // never happen. I used LED0 to help me locate where the issue was. Then I used
+                                                                     // an Analog Discovery 2 to trace the I2C transactions, and I measured the time
+                                                                     // from sending the 0xF3 command to the time of the 2-byte read. That time was only
+                                                                     // 5.62ms. You need to fix your timerWaitUs_irq() function. Perhaps build a unit test
+                                                                     // version of code that throughly exercises all cases for timerWaitUs_irq(). You can turn
+                                                                     // on and off LEDs to measure the times in the energy profiler.
                                   next_state = i2c_writecomplete;
+                                  LOG_INFO("To3");
+                                  //DOS gpioLed0SetOn();
                                 }
                               break;
                     case i2c_writecomplete:
                               next_state = i2c_writecomplete;
                               if(evt == evtTimerCOMP1)
                                 {
+                                  sl_power_manager_add_em_requirement(SL_POWER_MANAGER_EM1); // DOS add power requirement before initiating the I2C transfer
                                   i2c_read_irq();
-                                  sl_power_manager_add_em_requirement(SL_POWER_MANAGER_EM1);
                                   next_state = i2c_read_state;
+                                  LOG_INFO("To4");
                                 }
                               break;
                     case i2c_read_state:
@@ -199,7 +215,7 @@ void temperature_state_machine(sl_bt_msg_t *event)
                                     (uint8_t *)&temp_in_c // pointer to buffer where data is
                                   );
                                   if (sc != SL_STATUS_OK) {
-                                      LOG_ERROR("Updating GATT DB unsuccessful/r/n");
+                                      LOG_ERROR("Updating GATT DB unsuccessful");
                                   }
 
                                   if(!ble_data_ptr->indication_in_flight){
@@ -210,16 +226,18 @@ void temperature_state_machine(sl_bt_msg_t *event)
                                                                           &htm_temperature_buffer[0] // in IEEE-11073 format
                                                                         );
                                       if (sc != SL_STATUS_OK) {
-                                          LOG_ERROR("Indication not successful/r/n");
+                                          LOG_ERROR("Indication not successful");
                                       }
                                       else {
                                           ble_data_ptr->indication_in_flight = true;
                                       }
                                   }
 
-                                LOG_INFO("\r\n");
+                                //DOS LOG_INFO("");
 
                                 next_state = idle;
+                                LOG_INFO("To0");
+                                //DOS gpioLed0SetOff();
                                 }
                               break;
                   }

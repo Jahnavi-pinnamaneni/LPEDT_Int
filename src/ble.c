@@ -4,6 +4,7 @@
  * @author: Jahnavi Pinnamaneni; japi8358@colorado.edu
  */
 #include "ble.h"
+
 //#define INCLUDE_LOG_DEBUG 1
 #include "log.h"
 
@@ -43,6 +44,9 @@ void handle_ble_event(sl_bt_msg_t * evt)
   uint8_t system_id[8];
   ble_data_struct_t *ble_data_ptr;
 
+  // DOS: It's functionally ok do to this, but you realize that ble.c has direct access
+  // to the variable ble_data as it is defined just above. Other files like scheduler.c etc
+  // would use this technique to access the ble private data structure fields.
   ble_data_ptr = return_ble_data_struct();
 
 
@@ -61,7 +65,7 @@ void handle_ble_event(sl_bt_msg_t * evt)
     // Do not call any stack command before receiving this boot event!
     case sl_bt_evt_system_boot_id:
       // Print boot message.
-      LOG_INFO("Bluetooth stack booted: v%d.%d.%d-b%d\r\n",
+      LOG_INFO("Bluetooth stack booted: v%d.%d.%d-b%d",
                    evt->data.evt_system_boot.major,
                    evt->data.evt_system_boot.minor,
                    evt->data.evt_system_boot.patch,
@@ -71,7 +75,7 @@ void handle_ble_event(sl_bt_msg_t * evt)
       sc = sl_bt_system_get_identity_address(&address, &address_type);
       if(sc != SL_STATUS_OK)
         {
-          LOG_ERROR("ERROR: Get_identity address\r\n");
+          LOG_ERROR("ERROR: Get_identity address");
         }
 
       // Pad and reverse unique ID to get System ID.
@@ -84,16 +88,18 @@ void handle_ble_event(sl_bt_msg_t * evt)
       system_id[6] = address.addr[1];
       system_id[7] = address.addr[0];
 
+      // DOS: I don't believe this is required. At least, I don't do this in my
+      // implementation.
       sc = sl_bt_gatt_server_write_attribute_value(GATTDB_SYSTEM_ID,
                                                    0,
                                                    sizeof(system_id),
                                                    system_id);
       if(sc != SL_STATUS_OK)
         {
-          LOG_ERROR("ERROR: write_attribute_value\r\n");
+          LOG_ERROR("ERROR: write_attribute_value");
         }
 
-      LOG_INFO("Bluetooth %s address: %02X:%02X:%02X:%02X:%02X:%02X\r\n",
+      LOG_INFO("Bluetooth %s address: %02X:%02X:%02X:%02X:%02X:%02X",
                    address_type ? "static random" : "public device",
                    address.addr[5],
                    address.addr[4],
@@ -107,7 +113,7 @@ void handle_ble_event(sl_bt_msg_t * evt)
       sc = sl_bt_advertiser_create_set(&(ble_data_ptr->advertisingSetHandle));
       if(sc != SL_STATUS_OK)
         {
-          LOG_ERROR("ERROR: adverstiser_create_set\r\n");
+          LOG_ERROR("ERROR: adverstiser_create_set");
         }
 
       // Set advertising interval to 250ms.
@@ -119,7 +125,7 @@ void handle_ble_event(sl_bt_msg_t * evt)
         0);                       // max. num. adv. events
       if(sc != SL_STATUS_OK)
         {
-          LOG_ERROR("ERROR\r\n");
+          LOG_ERROR("ERROR");
         }
 
       // Start general advertising and enable connections.
@@ -129,11 +135,11 @@ void handle_ble_event(sl_bt_msg_t * evt)
         sl_bt_advertiser_connectable_scannable);
       if(sc != SL_STATUS_OK)
         {
-          LOG_ERROR("ERROR\r\n");
+          LOG_ERROR("ERROR");
         }
       else
         {
-          LOG_INFO("Started advertising\r\n");
+          LOG_INFO("Started advertising");
         }
 
       break;
@@ -141,15 +147,18 @@ void handle_ble_event(sl_bt_msg_t * evt)
     // -------------------------------
     // This event indicates that a new connection was opened.
     case sl_bt_evt_connection_opened_id:
-      LOG_INFO("Connection opened \r\n");
+      LOG_INFO("Connection opened ");
 
+      // DOS: grouped these together
+      ble_data_ptr->connection_handle = evt->data.evt_connection_opened.connection;
+      ble_data_ptr->connection_status = true;
       ble_data_ptr->indication_in_flight = false;
 
       // Stop the the advertiser once the connection is established
       sc = sl_bt_advertiser_stop(ble_data_ptr->advertisingSetHandle);
       if(sc != SL_STATUS_OK)
         {
-          LOG_ERROR("ERROR\r\n");
+          LOG_ERROR("ERROR");
         }
 
       // Set connection parameters like the  Connection Interval Max and Min and
@@ -165,17 +174,15 @@ void handle_ble_event(sl_bt_msg_t * evt)
           );
       if(sc != SL_STATUS_OK)
         {
-          LOG_ERROR("ERROR\r\n");
+          LOG_ERROR("ERROR");
         }
       else
         {
-          LOG_INFO("Set parameters complete\r\n");
+          LOG_INFO("Set parameters complete");
         }
 
 
-      // Update the ble data structure to reflect the connection status
-      ble_data_ptr->connection_handle = evt->data.evt_connection_opened.connection;
-      ble_data_ptr->connection_status = true;
+
 
 #ifdef SL_CATALOG_BLUETOOTH_FEATURE_POWER_CONTROL_PRESENT
       // Set remote connection power reporting - needed for Power Control
@@ -195,6 +202,8 @@ void handle_ble_event(sl_bt_msg_t * evt)
 
       // Update the connection status when connection is closed
       ble_data_ptr->connection_status = false;
+      ble_data_ptr->indication_in_flight = false; // DOS
+
       // Restart advertising after client has disconnected.
       sc = sl_bt_advertiser_start(
         ble_data_ptr->advertisingSetHandle,
@@ -202,7 +211,7 @@ void handle_ble_event(sl_bt_msg_t * evt)
         sl_bt_advertiser_connectable_scannable);
       if(sc != SL_STATUS_OK)
         {
-          LOG_ERROR("ERROR\r\n");
+          LOG_ERROR("ERROR");
         }
       else{
           LOG_INFO("Started advertising\n");
@@ -212,8 +221,8 @@ void handle_ble_event(sl_bt_msg_t * evt)
 
     // This event occurs once the connection parameters are set.
     case sl_bt_evt_connection_parameters_id:
-      LOG_INFO("\r\n connection_handle: %d, \r\n interval: %d ms,\r\n latency: %d "
-          "\r\n, timeout: %d ms, \r\n security_mode: %d, \r\n txsize: %d\r\n",
+      LOG_INFO("\n connection_handle: %d, \r\n interval: %d ms,\r\n latency: %d "
+          "\r\n, timeout: %d ms, \r\n security_mode: %d, \r\n txsize: %d",
            evt->data.evt_connection_parameters.connection,
            evt->data.evt_connection_parameters.interval,
            evt->data.evt_connection_parameters.latency,
@@ -265,8 +274,9 @@ void handle_ble_event(sl_bt_msg_t * evt)
     // The BLE server does not send further indications hence the indication_in_flight
     // flag is set to false
     case sl_bt_evt_gatt_server_indication_timeout_id:
-      LOG_ERROR("Indication TIMEOUT occurred\r\n");
-      ble_data_ptr->indication_in_flight = false;
+      LOG_ERROR("Indication TIMEOUT occurred");
+      //DOS Let the close event take care of this. Better to perform all of the book keeping in 1 place
+      // ble_data_ptr->indication_in_flight = false;
        break;
 
     // -------------------------------
