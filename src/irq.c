@@ -12,7 +12,7 @@
 #include "em_i2c.h"
 #include "log.h"
 
-#define INCLUDE_LOG_DEBUG 1
+//#define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
 
 #define TIME_RESOLUTION 3000

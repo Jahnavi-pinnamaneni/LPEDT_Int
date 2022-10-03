@@ -4,7 +4,7 @@
  * @author: Jahnavi Pinnamaneni; japi8358@colorado.edu
  */
 #include "ble.h"
-#define INCLUDE_LOG_DEBUG 1
+//#define INCLUDE_LOG_DEBUG 1
 #include "log.h"
 
 // BLE private data
@@ -143,6 +143,8 @@ void handle_ble_event(sl_bt_msg_t * evt)
     case sl_bt_evt_connection_opened_id:
       LOG_INFO("Connection opened \r\n");
 
+      ble_data_ptr->indication_in_flight = false;
+
       // Stop the the advertiser once the connection is established
       sc = sl_bt_advertiser_stop(ble_data_ptr->advertisingSetHandle);
       if(sc != SL_STATUS_OK)
@@ -263,11 +265,8 @@ void handle_ble_event(sl_bt_msg_t * evt)
     // The BLE server does not send further indications hence the indication_in_flight
     // flag is set to false
     case sl_bt_evt_gatt_server_indication_timeout_id:
-      if(ble_data_ptr->indication_in_flight)
-        {
-          LOG_ERROR("Indication TIMEOUT occurred\r\n");
-          ble_data_ptr->indication_in_flight = false;
-        }
+      LOG_ERROR("Indication TIMEOUT occurred\r\n");
+      ble_data_ptr->indication_in_flight = false;
        break;
 
     // -------------------------------

@@ -7,7 +7,7 @@
 #include "scheduler.h"
 
 
-//#define INCLUDE_LOG_DEBUG 1
+#define INCLUDE_LOG_DEBUG 0
 #include "log.h"
 
 
@@ -201,19 +201,23 @@ void temperature_state_machine(sl_bt_msg_t *event)
                                   if (sc != SL_STATUS_OK) {
                                       LOG_ERROR("Updating GATT DB unsuccessful/r/n");
                                   }
-                                  sc = sl_bt_gatt_server_send_indication(
-                                    ble_data_ptr->connection_handle,
-                                    gattdb_temperature_measurement, // handle from gatt_db.h
-                                    sizeof(htm_temperature_buffer),
-                                    &htm_temperature_buffer[0] // in IEEE-11073 format
-                                  );
-                                  if (sc != SL_STATUS_OK) {
-                                      LOG_ERROR("Indication not successful/r/n");
+
+                                  if(!ble_data_ptr->indication_in_flight){
+                                      sc = sl_bt_gatt_server_send_indication(
+                                                                          ble_data_ptr->connection_handle,
+                                                                          gattdb_temperature_measurement, // handle from gatt_db.h
+                                                                          sizeof(htm_temperature_buffer),
+                                                                          &htm_temperature_buffer[0] // in IEEE-11073 format
+                                                                        );
+                                      if (sc != SL_STATUS_OK) {
+                                          LOG_ERROR("Indication not successful/r/n");
+                                      }
+                                      else {
+                                          ble_data_ptr->indication_in_flight = true;
+                                      }
                                   }
-                                  else {
-                                      ble_data_ptr->indication_in_flight = true;
-                                  }
-                                LOG_INFO("\r\nTemperature Reading = %d",temp_data);
+
+                                LOG_INFO("\r\n%d",temp_data);
 
                                 next_state = idle;
                                 }
