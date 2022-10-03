@@ -78,6 +78,7 @@
       <value length="1" type="hex" variable_length="false"/>
       <properties>
         <read authenticated="false" bonded="false" encrypted="false"/>
+        <indicate authenticated="false" bonded="false" encrypted="false"/>
       </properties>
     </characteristic>
     
@@ -106,6 +107,7 @@
       <value length="2" type="hex" variable_length="false"/>
       <properties>
         <read authenticated="false" bonded="false" encrypted="false"/>
+        <indicate authenticated="false" bonded="false" encrypted="false"/>
       </properties>
       
       <!--Valid Range-->

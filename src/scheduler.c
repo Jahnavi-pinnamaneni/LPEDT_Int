@@ -7,7 +7,7 @@
 #include "scheduler.h"
 
 
-#define INCLUDE_LOG_DEBUG 0
+#define INCLUDE_LOG_DEBUG 1
 #include "log.h"
 
 
@@ -217,7 +217,7 @@ void temperature_state_machine(sl_bt_msg_t *event)
                                       }
                                   }
 
-                                LOG_INFO("\r\n%d",temp_data);
+                                LOG_INFO("\r\n");
 
                                 next_state = idle;
                                 }
