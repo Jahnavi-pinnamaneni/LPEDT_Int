@@ -17,7 +17,7 @@ See [Mastering Markdown](https://guides.github.com/features/mastering-markdown/)
 3. What is the peak current of an advertisement? 
    Answer: 4.18mA
    <br>Screenshot:  
-   ![peak_current_of_advertisement](../Screenshots/Assignment_5/Peak_cur_adv.png)  
+   ![peak_current_of_advertisement](../Screenshots/Assignment_5/Adv_peak_cur.png)  
 
 4. Provide screen shot showing the connection interval settings. Do they match the values you set in your slave(server) code or the master's(client) values?.
 Answer: 33ms, No they don't match.
