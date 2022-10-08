@@ -250,7 +250,7 @@ void displayInit()
     //           the time now for the LCD to function properly.
     //           Create that function to gpio.c/.h Then add that function call here.
     //
-    //gpioSensorEnSetOn(); // we need SENSOR_ENABLE=1 which is tied to DISP_ENABLE
+    gpioSensor_enSetOn(); // we need SENSOR_ENABLE=1 which is tied to DISP_ENABLE
     //                     // for the LCD, on all the time now
 
 
@@ -308,14 +308,15 @@ void displayInit()
     // Students: Figure out what parameters to pass in to sl_bt_system_set_soft_timer() to
     //           set up a 1 second repeating soft timer and uncomment the following lines
 
-	  //sl_status_t          timer_response;
-	  //timer_response = sl_bt_system_set_soft_timer();
-	  //if (timer_response != SL_STATUS_OK) {
-	  //    LOG_...
-    // }
-
-
-
+    sl_status_t          timer_response;
+    timer_response = sl_bt_system_set_soft_timer(
+                      32768,  //1 second is equal to 32768 ticks
+                      2,
+                      0
+                      );
+    if (timer_response != SL_STATUS_OK) {
+        LOG_ERROR("Soft time error\r\n");
+     }
 } // displayInit()
 
 
@@ -338,7 +339,7 @@ void displayUpdate()
 	//           the EXTCOMIN input to the LCD. Add that function to gpio.c./.h
 	//           Then uncomment the following line.
 	//
-	//gpioSetDisplayExtcomin(display->last_extcomin_state_high);
+	gpioSetDisplayExtcomin(display->last_extcomin_state_high);
 	
 } // displayUpdate()
 

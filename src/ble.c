@@ -64,12 +64,15 @@ void handle_ble_event(sl_bt_msg_t * evt)
     // This event indicates the device has started and the radio is ready.
     // Do not call any stack command before receiving this boot event!
     case sl_bt_evt_system_boot_id:
+      displayInit();
       // Print boot message.
       LOG_INFO("Bluetooth stack booted: v%d.%d.%d-b%d",
                    evt->data.evt_system_boot.major,
                    evt->data.evt_system_boot.minor,
                    evt->data.evt_system_boot.patch,
                    evt->data.evt_system_boot.build);
+
+      displayPrintf(DISPLAY_ROW_NAME , BLE_DEVICE_TYPE_STRING);
 
       // Extract unique ID from BT Address.
       sc = sl_bt_system_get_identity_address(&address, &address_type);
@@ -78,6 +81,9 @@ void handle_ble_event(sl_bt_msg_t * evt)
           LOG_ERROR("ERROR: Get_identity address");
         }
 
+      displayPrintf(DISPLAY_ROW_BTADDR , "%02X:%02X:%02X:%02X:%02X:%02X", address.addr[0],
+                    address.addr[1],address.addr[2],address.addr[3],
+                    address.addr[4],address.addr[5]);
       // Pad and reverse unique ID to get System ID.
       system_id[0] = address.addr[5];
       system_id[1] = address.addr[4];
@@ -139,16 +145,17 @@ void handle_ble_event(sl_bt_msg_t * evt)
         }
       else
         {
+          displayPrintf(DISPLAY_ROW_CONNECTION , "Advertising");
           LOG_INFO("Started advertising");
         }
-
+      displayPrintf(DISPLAY_ROW_ASSIGNMENT , "A6");
       break;
 
     // -------------------------------
     // This event indicates that a new connection was opened.
     case sl_bt_evt_connection_opened_id:
       LOG_INFO("Connection opened ");
-
+      displayPrintf(DISPLAY_ROW_CONNECTION , "Connected");
       // DOS: grouped these together
       ble_data_ptr->connection_handle = evt->data.evt_connection_opened.connection;
       ble_data_ptr->connection_status = true;
@@ -199,9 +206,11 @@ void handle_ble_event(sl_bt_msg_t * evt)
     // This event indicates that a connection was closed.
     case sl_bt_evt_connection_closed_id:
       LOG_INFO("Connection closed\n");
-
+      displayPrintf(DISPLAY_ROW_CONNECTION , " ");
+      displayPrintf(DISPLAY_ROW_TEMPVALUE , " ");
       // Update the connection status when connection is closed
       ble_data_ptr->connection_status = false;
+      ble_data_ptr->indication_flag = false;
       ble_data_ptr->indication_in_flight = false; // DOS
 
       // Restart advertising after client has disconnected.
@@ -214,6 +223,7 @@ void handle_ble_event(sl_bt_msg_t * evt)
           LOG_ERROR("ERROR");
         }
       else{
+          displayPrintf(DISPLAY_ROW_CONNECTION , "Advertising");
           LOG_INFO("Started advertising\n");
       }
 

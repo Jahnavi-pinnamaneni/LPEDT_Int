@@ -13,7 +13,7 @@
 
 //#define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
-#define MS_DIV 1000;
+#define MS_DIV 1000
 /*
  * @func: This function initializes the LETIMER0 by enabling the interrupt and loading the COMP0 and COMP1 registers
  */
@@ -93,8 +93,8 @@ void timerWaitUs_irq(uint32_t us_wait)
 {
   uint32_t prev_cnt = 0;
   uint32_t new_wait = 0;
-  us_wait = us_wait/MS_DIV;
-  if((us_wait == 0) || (us_wait > LETIMER_PERIOD_MS))
+  us_wait = ((us_wait/MS_DIV) * COMP0_VALUE)/LETIMER_PERIOD_MS;
+  if((us_wait == 0) || (us_wait > COMP0_VALUE))
   {
       LOG_ERROR("Enter the delay time within the range 1ms to 3secs");
       return;
@@ -104,7 +104,7 @@ void timerWaitUs_irq(uint32_t us_wait)
   if(us_wait <= prev_cnt)
     new_wait = prev_cnt - us_wait;
   else
-    new_wait = LETIMER_PERIOD_MS- us_wait - prev_cnt;
+    new_wait = COMP0_VALUE- (us_wait - prev_cnt);
 
   LETIMER_CompareSet(LETIMER0, 1, new_wait);
 

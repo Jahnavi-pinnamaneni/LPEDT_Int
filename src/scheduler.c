@@ -137,8 +137,8 @@ void temperature_state_machine(sl_bt_msg_t *event)
                               next_state = idle;
                               if(evt == evtTimerUF)
                                 {
-                                  gpioSensor_enSetOn();
-                                  timerWaitUs_irq(SENSOR_ENABLE_TIME*2); // DOS actual delay time is approx 1/2 of requested delay time.
+                                  //gpioSensor_enSetOn();
+                                  timerWaitUs_irq(SENSOR_ENABLE_TIME); // DOS actual delay time is approx 1/2 of requested delay time.
                                   next_state = sensor_enable;
                                   LOG_INFO("To1");
                                 }
@@ -159,16 +159,7 @@ void temperature_state_machine(sl_bt_msg_t *event)
                                 {
                                   NVIC_DisableIRQ(I2C0_IRQn);
                                   sl_power_manager_remove_em_requirement(SL_POWER_MANAGER_EM1);
-                                  timerWaitUs_irq(TEMP_MEAS_TIME*2); // DOS - Your timerWaitUs_irq() function was waiting 5.62 ms instead of 10.8ms
-                                                                     // resulting in your code attempting to read the 7021 temp value before the 7021 was
-                                                                     // was done completing the temp measurement. And your state machine got stuck
-                                                                     // in i2c_writecomplete state, waiting for an I2C completion event that will
-                                                                     // never happen. I used LED0 to help me locate where the issue was. Then I used
-                                                                     // an Analog Discovery 2 to trace the I2C transactions, and I measured the time
-                                                                     // from sending the 0xF3 command to the time of the 2-byte read. That time was only
-                                                                     // 5.62ms. You need to fix your timerWaitUs_irq() function. Perhaps build a unit test
-                                                                     // version of code that throughly exercises all cases for timerWaitUs_irq(). You can turn
-                                                                     // on and off LEDs to measure the times in the energy profiler.
+                                  timerWaitUs_irq(TEMP_MEAS_TIME);
                                   next_state = i2c_writecomplete;
                                   LOG_INFO("To3");
                                   //DOS gpioLed0SetOn();
@@ -190,7 +181,7 @@ void temperature_state_machine(sl_bt_msg_t *event)
                                 {
                                   sl_power_manager_remove_em_requirement(SL_POWER_MANAGER_EM1);
                                   NVIC_DisableIRQ(I2C0_IRQn);
-                                  gpioSensor_enSetOff();
+                                  //gpioSensor_enSetOff();
                                   read = read_data;
 
                                   temp_data = ((read & 0x00FF) << 8) & 0xFF00;
@@ -231,6 +222,7 @@ void temperature_state_machine(sl_bt_msg_t *event)
                                       else {
                                           ble_data_ptr->indication_in_flight = true;
                                       }
+                                      displayPrintf(DISPLAY_ROW_TEMPVALUE , "Temp=%d", temp_data);
                                   }
 
                                 //DOS LOG_INFO("");
@@ -250,9 +242,9 @@ void temperature_state_machine(sl_bt_msg_t *event)
           if(current_state != idle)
             {
               current_state = idle;
-              gpioSensor_enSetOff();
+              //gpioSensor_enSetOff();
             }
-
+          displayPrintf(DISPLAY_ROW_TEMPVALUE , " ");
         }
     }
 

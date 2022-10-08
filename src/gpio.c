@@ -35,7 +35,8 @@
 #define LED1_pin   5
 #define SENSOR_ENABLE_port 3
 #define SENSOR_ENABLE_pin 15
-
+#define EXTCOMIN_port gpioPortF
+#define EXTCOMIN_pin 18
 
 
 // Set GPIO drive strengths and modes of operation
@@ -54,6 +55,9 @@ void gpioInit()
 
   GPIO_DriveStrengthSet(SENSOR_ENABLE_port, gpioDriveStrengthWeakAlternateWeak);
   GPIO_PinModeSet(SENSOR_ENABLE_port, SENSOR_ENABLE_pin, gpioModePushPull, false);
+
+  GPIO_DriveStrengthSet(EXTCOMIN_port, gpioDriveStrengthWeakAlternateWeak);
+  GPIO_PinModeSet(EXTCOMIN_port, EXTCOMIN_pin, gpioModePushPull, false);
 
 
 } // gpioInit()
@@ -94,6 +98,12 @@ void gpioSensor_enSetOff()
 }
 
 
-
+void gpioSetDisplayExtcomin(bool val)
+{
+  if(val)
+    GPIO_PinOutClear(EXTCOMIN_port,EXTCOMIN_pin);
+  else
+    GPIO_PinOutClear(EXTCOMIN_port,EXTCOMIN_pin);
+}
 
 

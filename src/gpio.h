@@ -24,7 +24,7 @@
 #ifndef SRC_GPIO_H_
 #define SRC_GPIO_H_
 
-
+#include <stdbool.h>
 
 
 // Function prototypes
@@ -35,7 +35,7 @@ void gpioLed1SetOn();
 void gpioLed1SetOff();
 void gpioSensor_enSetOn();
 void gpioSensor_enSetOff();
-
+void gpioSetDisplayExtcomin(bool val);
 
 
 

@@ -12,6 +12,8 @@
 #include "app_assert.h"
 #include <stdbool.h>
 #include "gatt_db.h"
+#include "lcd.h"
+#include "ble_device_type.h"
 
 #define UINT8_TO_BITSTREAM(p, n) { *(p)++ = (uint8_t)(n); }
 #define UINT32_TO_BITSTREAM(p, n) { *(p)++ = (uint8_t)(n); *(p)++ = (uint8_t)((n) >> 8); \
