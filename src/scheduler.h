@@ -17,6 +17,7 @@
 #include "ble.h"
 #include "gatt_db.h"
 #include "app_assert.h"
+#include "irq.h"
 
 /* This enum will have values like 0, 2, 4, 8, 16, 32 */
 typedef enum {

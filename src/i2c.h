@@ -53,4 +53,19 @@ void i2c_write_irq(uint8_t data);
  * @return: read data
  */
 void i2c_read_irq(void);
+
+/*
+ * @desc: I2C with interrupt wrapper function for TMP117
+ * @params:
+ *  address: Device Address
+ *  Data: Data to be sent
+ *  ReadWrite: Read/Write flag
+ *  DataLen: Number of bytes to be sent
+ *  ReadLen: Number of bytes to be read
+ * @return:
+ *  0: I2C transfer was successful
+ *  1: I2C transfer was not successful
+ */
+uint8_t I2CTransferInitWrapper(uint8_t address, uint8_t* Data, uint8_t ReadWrite, uint8_t DataLen,
+                               uint8_t ReadLen);
 #endif /* SRC_I2C_H_ */

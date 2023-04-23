@@ -18,6 +18,8 @@
 #define TIME_RESOLUTION 3000
 static long int count_flag = 0;
 
+I2C_TransferReturn_TypeDef I2CTransferReturn;
+
 /*
  * @func: This function describes the IRQ Handler for the LETIMER0.
  *        It calls the scheduler function that saves the event that has occurred
@@ -68,4 +70,9 @@ void I2C0_IRQHandler(void)
     {
       LOG_ERROR("I2C transfer status: %d", transferStatus);
     }
+}
+
+I2C_TransferReturn_TypeDef getI2CTransferReturn()
+{
+  return I2CTransferReturn;
 }

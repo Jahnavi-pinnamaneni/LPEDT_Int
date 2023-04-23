@@ -151,3 +151,39 @@ void i2c_read_irq(void)
       LOG_ERROR("I2CSPM Transfer: I2C bus read failed with error code = %d", transferStatus);
     }
 }
+
+/*
+ * @brief: I2C with interrupt wrapper function for TMP117
+ */
+uint8_t I2CTransferInitWrapper(uint8_t address, uint8_t* Data, uint8_t ReadWrite, uint8_t DataLen,
+                               uint8_t ReadLen)
+{
+  I2C_TransferReturn_TypeDef I2CTransferReturn;
+
+  /* Fill the transfer sequence structure */
+  transferSequence.addr    = (address << 1);
+  transferSequence.flags   = ReadWrite;
+
+  transferSequence.buf[0].data  = Data;
+  transferSequence.buf[0].len   = DataLen;
+
+  if(ReadWrite == I2C_FLAG_WRITE_READ)
+    {
+      transferSequence.buf[1].data  = &Data[1];
+      transferSequence.buf[1].len   = ReadLen;
+    }
+
+  NVIC_EnableIRQ(I2C0_IRQn);
+
+  /* Initialize a transfer */
+  I2CTransferReturn = I2C_TransferInit(I2C0, &transferSequence);
+
+  /* LOG an error if transfer failed */
+  if(I2CTransferReturn < 0)
+    {
+      LOG_ERROR("I2C_TransferInit Failed. Error = %d\n\r", I2CTransferReturn);
+      return 1;
+    }
+
+  return 0;
+}
