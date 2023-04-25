@@ -74,6 +74,11 @@ void handle_ble_event(sl_bt_msg_t * evt)
 
       displayPrintf(DISPLAY_ROW_NAME , BLE_DEVICE_TYPE_STRING);
 
+      sc = sl_bt_system_set_soft_timer(SOFT_TIMER_INTERVAL_FOR_PULSE_SENSOR, SOFT_TIMER_PULSE_SENSOR, false);
+      if (sc != SL_STATUS_OK) {
+                LOG_ERROR("Soft time 10ms error\r\n");
+             }
+
       // Extract unique ID from BT Address.
       sc = sl_bt_system_get_identity_address(&address, &address_type);
       if(sc != SL_STATUS_OK)

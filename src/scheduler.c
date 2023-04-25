@@ -9,7 +9,7 @@
 #include "src/gpio.h"
 
 
-//#define INCLUDE_LOG_DEBUG 1
+#define INCLUDE_LOG_DEBUG 1
 #include "log.h"
 
 
@@ -32,6 +32,26 @@ typedef enum states{
   i2c_read_tmp,
   display_temp
 }state_t;
+
+/******************************************************************************/
+/*
+ * Pulse sensor variables
+ */
+volatile int rate[10];                    // array to hold last ten IBI values
+volatile unsigned long sampleCounter = 0;          // used to determine pulse timing
+volatile unsigned long lastBeatTime = 0;           // used to find IBI
+volatile int P = 65536;                      // used to find peak in pulse wave, seeded
+volatile int T = 65536;                     // used to find trough in pulse wave, seeded
+volatile int thresh = 65536;                // used to find instant moment of heart beat, seeded
+volatile int amp = 0;                   // used to hold amplitude of pulse waveform, seeded
+volatile bool firstBeat = true;        // used to seed rate array so we startup with reasonable BPM
+volatile bool secondBeat = false;      // used to seed rate array so we startup with reasonable BPM
+volatile uint8_t BPM;                   // int that holds raw Analog in 0. updated every 2mS
+volatile int Signal;                // holds the incoming raw data
+volatile int IBI = 600;             // int that holds the time interval between beats! Must be seeded!
+volatile bool Pulse = false;     // "True" when User's live heartbeat is detected. "False" when not a "live beat".
+int analog_values[10] = {105335,105349, 105331,105330, 105316,105330, 105375,105397, 105423,105459};
+int hr= 0;
 
 extern uint16_t read_data;
 /*
@@ -261,4 +281,101 @@ void temperature_state_machine(sl_bt_msg_t *event)
         }
     }
 
+}
+
+void pulse_state_machine(sl_bt_msg_t *evt)
+{
+//  sl_status_t sc;
+//  ble_data_struct_t *ble_data_ptr = get_ble_data_ptr();
+//  uint8_t pulse_buffer[2] = {0};
+
+//  if(!ble_data_ptr->bonding_status)
+//    return;
+
+  switch (SL_BT_MSG_ID(evt->header))
+  {
+    case sl_bt_evt_system_soft_timer_id:
+
+      if(evt->data.evt_system_soft_timer.handle == SOFT_TIMER_PULSE_SENSOR)
+        {
+/*
+ * Citation: This code to calculate the BPM was taken from Sparkfun resources.
+ */
+          LOG_INFO("pulse state machine\r\n");
+          Signal = analog_values[hr++];
+          if(hr > 9)
+            hr = 0;
+          sampleCounter += 10;                         // keep track of the time in mS with this variable
+          int N = sampleCounter - lastBeatTime;       // monitor the time since the last beat to avoid noise
+
+            //  find the peak and trough of the pulse wave
+          if(Signal < thresh && N > (IBI/5)*3){       // avoid dichrotic noise by waiting 3/5 of last IBI
+            if (Signal < T){                        // T is the trough
+              T = Signal;                         // keep track of lowest point in pulse wave
+            }
+          }
+
+          if(Signal > thresh && Signal > P){          // thresh condition helps avoid noise
+            P = Signal;                             // P is the peak
+          }                                        // keep track of highest point in pulse wave
+
+          //  NOW IT'S TIME TO LOOK FOR THE HEART BEAT
+          // signal surges up in value every time there is a pulse
+          if (N > 250){                                   // avoid high frequency noise
+              LOG_INFO("1 %d\r\n", N);
+            if ( (Signal > thresh) && (Pulse == false) && (N > (IBI/5)*3) ){
+                LOG_INFO("2\r\n");
+              Pulse = true;                               // set the Pulse flag when we think there is a pulse
+              IBI = sampleCounter - lastBeatTime;         // measure time between beats in mS
+              lastBeatTime = sampleCounter;               // keep track of time for next pulse
+
+              if(secondBeat){                        // if this is the second beat, if secondBeat == TRUE
+                secondBeat = false;                  // clear secondBeat flag
+                for(int i=0; i<=9; i++){             // seed the running total to get a realisitic BPM at startup
+                  rate[i] = IBI;
+                }
+              }
+              LOG_INFO("3\r\n");
+              if(firstBeat){                         // if it's the first time we found a beat, if firstBeat == TRUE
+                firstBeat = false;                   // clear firstBeat flag
+                secondBeat = true;                   // set the second beat flag
+                Pulse = false;
+                return;                              // IBI value is unreliable so discard it
+              }
+
+              LOG_INFO("4\r\n");
+              // keep a running total of the last 10 IBI values
+              uint32_t runningTotal = 0;                  // clear the runningTotal variable
+
+              for(int i=0; i<=8; i++){                // shift data in the rate array
+                rate[i] = rate[i+1];                  // and drop the oldest IBI value
+                runningTotal += rate[i];              // add up the 9 oldest IBI values
+              }
+              LOG_INFO("5\r\n");
+              rate[9] = IBI;                          // add the latest IBI to the rate array
+              runningTotal += rate[9];                // add the latest IBI to runningTotal
+              runningTotal /= 10;                     // average the last 10 IBI values
+              BPM = 60000/runningTotal;               // how many beats can fit into a minute? that's BPM!
+              LOG_INFO("BPM: %d\r\n",BPM);
+            }
+        }
+          if (Signal < thresh && Pulse == true){   // when the values are going down, the beat is over
+            Pulse = false;                         // reset the Pulse flag so we can do it again
+            amp = P - T;                           // get amplitude of the pulse wave
+            thresh = amp/2 + T;                    // set thresh at 50% of the amplitude
+            P = thresh;                            // reset these for next time
+            T = thresh;
+          }
+
+          if (N > 2500){                           // if 2.5 seconds go by without a beat
+            thresh = 65536;                          // set thresh default
+            P = 65536;                               // set P default
+            T = 65536;                               // set T default
+            lastBeatTime = sampleCounter;          // bring the lastBeatTime up to date
+            firstBeat = true;                      // set these to avoid noise
+            secondBeat = false;                    // when we get the heartbeat back
+          }
+
+  }
+}
 }

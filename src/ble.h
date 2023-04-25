@@ -15,6 +15,10 @@
 #include "lcd.h"
 #include "ble_device_type.h"
 
+
+#define SOFT_TIMER_INTERVAL_FOR_PULSE_SENSOR    327 // 327 is for a period of 10  ms
+#define SOFT_TIMER_PULSE_SENSOR                 1
+
 #define UINT8_TO_BITSTREAM(p, n) { *(p)++ = (uint8_t)(n); }
 #define UINT32_TO_BITSTREAM(p, n) { *(p)++ = (uint8_t)(n); *(p)++ = (uint8_t)((n) >> 8); \
       *(p)++ = (uint8_t)((n) >> 16); *(p)++ = (uint8_t)((n) >> 24); }

@@ -33,7 +33,7 @@ void LETIMER0_IRQHandler(void)
 
   if(interrupt_flag & _LETIMER_IEN_UF_MASK)
   {
-      count_flag += 1;
+      count_flag += 10;
       schedulerSetEventUF();
   }
   if(interrupt_flag & _LETIMER_IEN_COMP1_MASK)
