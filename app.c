@@ -59,6 +59,7 @@
 #include "src/ble.h"
 #include "src/SparkFun_MAX30101.h"
 #include "src/spo2_algo.h"
+#include "src/heartRate.h"
 
 // Students: Here is an example of how to correctly include logging functions in
 //           each .c file.
@@ -70,6 +71,14 @@
 // Include logging specifically for this .c file
 #define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
+
+#define RATE_SIZE 4
+uint8_t rates[RATE_SIZE]; //Array of heart rates
+uint8_t rateSpot = 0;
+long lastBeat = 0; //Time at which the last beat occurred
+
+float beatsPerMinute;
+int beatAvg;
 
 void HR_init()
 {
@@ -184,7 +193,7 @@ SL_WEAK void app_init(void)
   //Assignment 3
   gpioInit();
   oscillator_init();
-  //HR_init();
+  HR_init();
   SPO2_init();
   letimer0_init();
 
@@ -239,8 +248,8 @@ SL_WEAK void app_process_action(void)
 //
 //  evt = schedulerGetEvent();
 //  temperature_state_machine(evt);
-
- // SPO2_measure();
+   // HR_measure();
+  SPO2_measure();
 } // app_process_action()
 
 
@@ -267,12 +276,12 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
   // Some events require responses from our application code,
   // and don’t necessarily advance our state machines.
   // For A5 uncomment the next 2 function calls
-   handle_ble_event(evt); // put this code in ble.c/.h
+  // handle_ble_event(evt); // put this code in ble.c/.h
 
   // sequence through states driven by events
   // temperature_state_machine(evt);    // put this code in scheduler.c/.h
 
-   pulse_state_machine(evt);
+//   pulse_state_machine(evt);
 } // sl_bt_on_event()
 
 uint32_t irBuffer[100]; //infrared LED sensor data
@@ -380,4 +389,45 @@ void SPO2_init()
    // uint8_t powerLevel = 0x1F, uint8_t sampleAverage = 4, uint8_t ledMode = 3, int sampleRate = 400, int pulseWidth = 411, int adcRange = 4096
 //   MAX30105_setup(0x1F, 4, 2, 400, 411, 4096);
    MAX30105_setup(ledBrightness, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange); //Configure sensor with these settings
+}
+
+void HR_measure()
+{
+  long irValue = MAX30105_getIR();
+  LOG_INFO("IR vlaue = %d\r", irValue);
+
+  if (checkForBeat(irValue) == true)
+  {
+    //We sensed a beat!
+    LOG_INFO("================================== Inside checkForBeat ===============================\r");
+    long delta = millis() - lastBeat;
+    lastBeat = millis();
+
+    beatsPerMinute = 60 / (delta / 1000.0);
+
+    if (beatsPerMinute < 255 && beatsPerMinute > 20)
+    {
+      rates[rateSpot++] = (uint8_t)beatsPerMinute; //Store this reading in the array
+      rateSpot %= RATE_SIZE; //Wrap variable
+
+      //Take average of readings
+      beatAvg = 0;
+      for (uint8_t x = 0 ; x < RATE_SIZE ; x++)
+        beatAvg += rates[x];
+      beatAvg /= RATE_SIZE;
+    }
+  }
+
+  LOG_INFO("IR = %d\r", irValue);
+  LOG_INFO("BPM = %d\r", beatsPerMinute);
+
+  LOG_INFO("Avg BPM = %d\r", beatAvg);
+
+
+  if (irValue < 50000)
+    LOG_INFO(" No finger?");
+
+//  LOG_INFO("HR = %d\r", meanDiff(MAX30105_getIR()));
+
+
 }

@@ -339,7 +339,6 @@ void pulse_state_machine(sl_bt_msg_t *evt)
               if(firstBeat){                         // if it's the first time we found a beat, if firstBeat == TRUE
                 firstBeat = false;                   // clear firstBeat flag
                 secondBeat = true;                   // set the second beat flag
-                Pulse = false;
                 return;                              // IBI value is unreliable so discard it
               }
 

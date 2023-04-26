@@ -15,7 +15,7 @@
 //#define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
 
-#define TIME_RESOLUTION 3000
+#define TIME_RESOLUTION 10
 static long int count_flag = 0;
 
 I2C_TransferReturn_TypeDef I2CTransferReturn;
@@ -33,7 +33,7 @@ void LETIMER0_IRQHandler(void)
 
   if(interrupt_flag & _LETIMER_IEN_UF_MASK)
   {
-      count_flag += 10;
+      count_flag += 1;
       schedulerSetEventUF();
   }
   if(interrupt_flag & _LETIMER_IEN_COMP1_MASK)
