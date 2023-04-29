@@ -61,6 +61,6 @@ uint32_t schedulerGetEvent(void);
  * @return: none
  */
 void temperature_state_machine(sl_bt_msg_t *evt);
-//void temperature_state_machine(scheduler_evt_t evt);
+void BPM_state_machine(sl_bt_msg_t *event);
 
 #endif /* SRC_SCHEDULER_H_ */

@@ -39,7 +39,11 @@ typedef struct {
 
   bool indication_flag;
 
+  bool indication_flag_PB0;
+
   bool indication_in_flight;
+
+  bool indication_in_flight_PB0;
 
   // values unique for client
 
@@ -47,5 +51,6 @@ typedef struct {
 
 ble_data_struct_t * return_ble_data_struct();
 void handle_ble_event(sl_bt_msg_t * evt);
+void send_button_state_indication(uint8_t button_st);
 
 #endif /* SRC_BLE_H_ */

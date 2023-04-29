@@ -5,7 +5,7 @@
  */
 #include "ble.h"
 
-//#define INCLUDE_LOG_DEBUG 1
+#define INCLUDE_LOG_DEBUG 1
 #include "log.h"
 
 // BLE private data
@@ -278,6 +278,40 @@ void handle_ble_event(sl_bt_msg_t * evt)
             LOG_INFO("Indications Complete \n\r");
             ble_data_ptr->indication_in_flight = false;
         }
+
+      // Check if the characteristic is Button state and if Characteristic
+      // configuration is changed
+      if(evt->data.evt_gatt_server_characteristic_status.characteristic ==
+          gattdb_BPM && evt->data.evt_gatt_server_characteristic_status.
+          status_flags == sl_bt_gatt_server_client_config)
+              {
+                // Check if Indications are enabled
+                if(evt->data.evt_gatt_server_characteristic_status.client_config_flags
+                    == sl_bt_gatt_server_indication)
+                  {
+                    ble_data_ptr->connection_handle = evt->data.
+                        evt_gatt_server_characteristic_status.connection;
+                    ble_data.indication_flag_PB0 = true;
+                    gpioLed1SetOn();
+                    LOG_INFO("Indications PB0 Enabled\n\r");
+                  }
+                else
+                  {
+                    ble_data.indication_flag_PB0 = false;
+                    gpioLed1SetOff();
+                    LOG_INFO("Indications PB0 Disabled \n\r");
+                  }
+              }
+      // Check if the characteristic is Button state and if characteristic
+      // confirmation has been received. This implies that the indication has been
+      // sent successfully hence the indication_in_flight flag is set to false
+      else if(evt->data.evt_gatt_server_characteristic_status.characteristic ==
+          gattdb_BPM && evt->data.evt_gatt_server_characteristic_status.
+          status_flags == sl_bt_gatt_server_confirmation)
+        {
+            LOG_INFO("Indications Complete \n\r");
+            ble_data_ptr->indication_in_flight_PB0 = false;
+        }
       break;
 
     // This event occurs when the confirmation for an indication has not been received
@@ -294,4 +328,53 @@ void handle_ble_event(sl_bt_msg_t * evt)
     default:
       break;
   }
+}
+
+
+
+void send_button_state_indication(uint8_t button_st)
+{
+
+  uint8_t button_state_buffer[2] = {0};
+
+  /* Position 0 is flags which are 0 in case of indication */
+  /* Since the data starts from position 1 */
+
+  button_state_buffer[1] = button_st;
+  sl_status_t sc;
+
+  if (ble_data.connection_status == true &&
+      ble_data.indication_flag_PB0 == true ){
+      if (ble_data.indication_in_flight_PB0 == false) {
+
+          /* Send the indication right away since there is no pending GATT command */
+          sc = sl_bt_gatt_server_send_indication(ble_data.connection_handle,
+                                                 gattdb_BPM,
+                                                 sizeof(button_state_buffer),
+                                                 button_state_buffer);
+          if (sc != SL_STATUS_OK) {
+              LOG_ERROR("sl_bt_gatt_server_send_indication failed with error code 0x%x\n\r", sc);
+          }
+          app_assert_status(sc);
+          LOG_INFO("Buttonn State indication sent\r");
+          /* Uncomment below line for debugging */
+          //displayPrintf(DISPLAY_ROW_10, "Btn Indications = %d", ++button_indications);
+          ble_data.indication_in_flight_PB0 = true;
+      }
+//      else {
+//          /* Add the event to the queue */
+//          queue_struct_t q = {0};
+//          memcpy(q.buf, button_state_buffer, sizeof(button_state_buffer));
+//          q.bufferLength = sizeof(button_state_buffer);
+//          q.charHandle = gattdb_button_state;
+//
+//          if ( write_queue(q) == false ) {
+//              LOG_INFO("Event added to queue, Qdepth = %d\r", get_queue_depth());
+//          }
+//          else {
+//              LOG_ERROR("write_queue failed : Queue is full\r");
+//          }
+//      }
+  }
+
 }

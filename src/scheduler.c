@@ -262,3 +262,26 @@ void temperature_state_machine(sl_bt_msg_t *event)
     }
 
 }
+
+void BPM_state_machine(sl_bt_msg_t *event)
+{
+  scheduler_evt_t evt = 0;
+  static int i = 0;
+  if(SL_BT_MSG_ID(event->header) == sl_bt_evt_system_external_signal_id)
+  {
+    evt = event->data.evt_system_external_signal.extsignals;
+
+    if(evt == evtTimerUF)
+    {
+//      sl_power_manager_add_em_requirement(SL_POWER_MANAGER_EM1);
+//      setOneShotModeTMP117();
+        send_button_state_indication(i);
+//      next_state = wait_one_shot;
+      LOG_INFO("Sent BPM value");
+      i++;
+      //DOS gpioLed0SetOn();
+    }
+
+  }
+
+}

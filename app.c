@@ -222,6 +222,7 @@ SL_WEAK void app_process_action(void)
 //  evt = schedulerGetEvent();
 //  temperature_state_machine(evt);
 
+
 } // app_process_action()
 
 
@@ -252,6 +253,8 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
 
   // sequence through states driven by events
    temperature_state_machine(evt);    // put this code in scheduler.c/.h
+
+   BPM_state_machine(evt);
 
 
 } // sl_bt_on_event()
