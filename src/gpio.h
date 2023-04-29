@@ -38,5 +38,6 @@ void gpioSensor_enSetOff();
 void gpioSetDisplayExtcomin(bool val);
 
 
-
+unsigned int gpioReadPB0(void);
+unsigned int gpioReadPB1(void);
 #endif /* SRC_GPIO_H_ */

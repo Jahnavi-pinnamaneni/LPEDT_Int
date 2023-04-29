@@ -16,7 +16,7 @@
 #include "ble_device_type.h"
 
 
-#define SOFT_TIMER_INTERVAL_FOR_PULSE_SENSOR    327 // 327 is for a period of 10  ms
+#define SOFT_TIMER_INTERVAL_FOR_PULSE_SENSOR    32700 // 327 is for a period of 10  ms
 #define SOFT_TIMER_PULSE_SENSOR                 1
 
 #define UINT8_TO_BITSTREAM(p, n) { *(p)++ = (uint8_t)(n); }
@@ -44,6 +44,9 @@ typedef struct {
   bool indication_flag;
 
   bool indication_in_flight;
+
+  uint8_t   PB0_state;
+  uint8_t   PB1_state;
 
   // values unique for client
 

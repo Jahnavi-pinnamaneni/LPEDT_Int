@@ -25,7 +25,9 @@ typedef enum {
   evtNoEvent = 0x0u,
   evtTimerUF = 0x1u,
   evtTimerCOMP1 = 0x2u,
-  evtI2CComplete = 0x4u
+  evtI2CComplete = 0x4u,
+  evtPB0          = 0x8u,
+  evtPB1          = 0x16u
 } scheduler_evt_t;
 
 /*
@@ -50,6 +52,20 @@ void schedulerSetEventCOMP1(void);
 void schedulerSetEventI2CComplete(void);
 
 /*
+ * @brief: This function sets the event flag pertaining to the PB0 GPIO interrupt
+ * @params: none
+ * @return: none
+ */
+void schedulerSetEventPB0(void);
+
+/*
+ * @brief: This function sets the event flag pertaining to the PB1 GPIO interrupt
+ * @params: none
+ * @return: none
+ */
+void schedulerSetEventPB1(void);
+
+/*
  * @brief: This function returns the event that needs to be handled.
  * @params: none
  * @return: returns the event that has occurred
@@ -64,5 +80,5 @@ uint32_t schedulerGetEvent(void);
 void temperature_state_machine(sl_bt_msg_t *evt);
 //void temperature_state_machine(scheduler_evt_t evt);
 void pulse_state_machine(sl_bt_msg_t *evt);
-
+void SPO2_measure_state_machine(sl_bt_msg_t *event);
 #endif /* SRC_SCHEDULER_H_ */

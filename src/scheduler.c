@@ -12,6 +12,8 @@
 #define INCLUDE_LOG_DEBUG 1
 #include "log.h"
 
+#include "spo2_algo.h"
+
 
 #define CMD_DATA_TO_READ 0xF3
 #define MULTIPLIER 175.72
@@ -33,6 +35,7 @@ typedef enum states{
   display_temp
 }state_t;
 
+uint8_t PB0_flag = false;
 /******************************************************************************/
 /*
  * Pulse sensor variables
@@ -52,6 +55,21 @@ volatile int IBI = 600;             // int that holds the time interval between 
 volatile bool Pulse = false;     // "True" when User's live heartbeat is detected. "False" when not a "live beat".
 int analog_values[10] = {105335,105349, 105331,105330, 105316,105330, 105375,105397, 105423,105459};
 int hr= 0;
+
+
+uint32_t irBuffer[100]; //infrared LED sensor data
+uint32_t redBuffer[100];  //red LED sensor data
+int32_t bufferLength; //data length
+int32_t spo2; //SPO2 value
+int8_t validSPO2; //indicator to show if the SPO2 calculation is valid
+int32_t heartRate; //heart rate value
+int8_t validHeartRate; //indicator to show if the heart rate calculation is valid
+
+#define NO_OF_SAMPLES 275
+int32_t hr_buffer[NO_OF_SAMPLES];
+int32_t spo2_buffer[NO_OF_SAMPLES];
+uint8_t pulseLED = 11; //Must be on PWM pin
+uint8_t readLED = 13; //Blinks with each data read
 
 extern uint16_t read_data;
 /*
@@ -92,6 +110,40 @@ void schedulerSetEventI2CComplete(void)
 
   //evt_flag |= evtI2CComplete;
   sl_bt_external_signal(evtI2CComplete);
+
+  CORE_EXIT_CRITICAL();
+}
+
+/*
+ * @brief: This function sets the event flag pertaining to the PB0 GPIO interrupt
+ */
+void schedulerSetEventPB0(void)
+{
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_CRITICAL();
+  ble_data_struct_t *ble_data_ptr;
+  ble_data_ptr = return_ble_data_struct();
+
+  ble_data_ptr->PB0_state = gpioReadPB0();
+
+  sl_bt_external_signal(evtPB0);
+
+  CORE_EXIT_CRITICAL();
+}
+
+/*
+ * @brief: This function sets the event flag pertaining to the PB1 GPIO interrupt
+ */
+void schedulerSetEventPB1(void)
+{
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_CRITICAL();
+  ble_data_struct_t *ble_data_ptr;
+  ble_data_ptr = return_ble_data_struct();
+
+  ble_data_ptr->PB1_state = gpioReadPB1();
+
+  sl_bt_external_signal(evtPB1);
 
   CORE_EXIT_CRITICAL();
 }
@@ -283,98 +335,225 @@ void temperature_state_machine(sl_bt_msg_t *event)
 
 }
 
-void pulse_state_machine(sl_bt_msg_t *evt)
+//void pulse_state_machine(sl_bt_msg_t *evt)
+//{
+////  sl_status_t sc;
+////  ble_data_struct_t *ble_data_ptr = get_ble_data_ptr();
+////  uint8_t pulse_buffer[2] = {0};
+//
+////  if(!ble_data_ptr->bonding_status)
+////    return;
+//
+//  switch (SL_BT_MSG_ID(evt->header))
+//  {
+//    case sl_bt_evt_system_soft_timer_id:
+//
+//      if(evt->data.evt_system_soft_timer.handle == SOFT_TIMER_PULSE_SENSOR)
+//        {
+///*
+// * Citation: This code to calculate the BPM was taken from Sparkfun resources.
+// */
+//          LOG_INFO("pulse state machine\r\n");
+//          Signal = analog_values[hr++];
+//          if(hr > 9)
+//            hr = 0;
+//          sampleCounter += 10;                         // keep track of the time in mS with this variable
+//          int N = sampleCounter - lastBeatTime;       // monitor the time since the last beat to avoid noise
+//
+//            //  find the peak and trough of the pulse wave
+//          if(Signal < thresh && N > (IBI/5)*3){       // avoid dichrotic noise by waiting 3/5 of last IBI
+//            if (Signal < T){                        // T is the trough
+//              T = Signal;                         // keep track of lowest point in pulse wave
+//            }
+//          }
+//
+//          if(Signal > thresh && Signal > P){          // thresh condition helps avoid noise
+//            P = Signal;                             // P is the peak
+//          }                                        // keep track of highest point in pulse wave
+//
+//          //  NOW IT'S TIME TO LOOK FOR THE HEART BEAT
+//          // signal surges up in value every time there is a pulse
+//          if (N > 250){                                   // avoid high frequency noise
+//              LOG_INFO("1 %d\r\n", N);
+//            if ( (Signal > thresh) && (Pulse == false) && (N > (IBI/5)*3) ){
+//                LOG_INFO("2\r\n");
+//              Pulse = true;                               // set the Pulse flag when we think there is a pulse
+//              IBI = sampleCounter - lastBeatTime;         // measure time between beats in mS
+//              lastBeatTime = sampleCounter;               // keep track of time for next pulse
+//
+//              if(secondBeat){                        // if this is the second beat, if secondBeat == TRUE
+//                secondBeat = false;                  // clear secondBeat flag
+//                for(int i=0; i<=9; i++){             // seed the running total to get a realisitic BPM at startup
+//                  rate[i] = IBI;
+//                }
+//              }
+//              LOG_INFO("3\r\n");
+//              if(firstBeat){                         // if it's the first time we found a beat, if firstBeat == TRUE
+//                firstBeat = false;                   // clear firstBeat flag
+//                secondBeat = true;                   // set the second beat flag
+//                return;                              // IBI value is unreliable so discard it
+//              }
+//
+//              LOG_INFO("4\r\n");
+//              // keep a running total of the last 10 IBI values
+//              uint32_t runningTotal = 0;                  // clear the runningTotal variable
+//
+//              for(int i=0; i<=8; i++){                // shift data in the rate array
+//                rate[i] = rate[i+1];                  // and drop the oldest IBI value
+//                runningTotal += rate[i];              // add up the 9 oldest IBI values
+//              }
+//              LOG_INFO("5\r\n");
+//              rate[9] = IBI;                          // add the latest IBI to the rate array
+//              runningTotal += rate[9];                // add the latest IBI to runningTotal
+//              runningTotal /= 10;                     // average the last 10 IBI values
+//              BPM = 60000/runningTotal;               // how many beats can fit into a minute? that's BPM!
+//              LOG_INFO("BPM: %d\r\n",BPM);
+//            }
+//        }
+//          if (Signal < thresh && Pulse == true){   // when the values are going down, the beat is over
+//            Pulse = false;                         // reset the Pulse flag so we can do it again
+//            amp = P - T;                           // get amplitude of the pulse wave
+//            thresh = amp/2 + T;                    // set thresh at 50% of the amplitude
+//            P = thresh;                            // reset these for next time
+//            T = thresh;
+//          }
+//
+//          if (N > 2500){                           // if 2.5 seconds go by without a beat
+//            thresh = 65536;                          // set thresh default
+//            P = 65536;                               // set P default
+//            T = 65536;                               // set T default
+//            lastBeatTime = sampleCounter;          // bring the lastBeatTime up to date
+//            firstBeat = true;                      // set these to avoid noise
+//            secondBeat = false;                    // when we get the heartbeat back
+//          }
+//
+//  }
+//}
+//}
+
+void SPO2_measure_state_machine(sl_bt_msg_t *event)
 {
-//  sl_status_t sc;
-//  ble_data_struct_t *ble_data_ptr = get_ble_data_ptr();
-//  uint8_t pulse_buffer[2] = {0};
+  sl_status_t sc = 0;
+  ble_data_struct_t *ble_data_ptr;
+  ble_data_ptr = return_ble_data_struct();
+  static uint8_t count = 0;
+  static int i = 0;
+  static long sum = 0;
 
-//  if(!ble_data_ptr->bonding_status)
-//    return;
-
-  switch (SL_BT_MSG_ID(evt->header))
+  switch (SL_BT_MSG_ID(event->header))
   {
+    case sl_bt_evt_system_external_signal_id:
+      if(event->data.evt_system_external_signal.extsignals == evtPB0)
+        {
+          if(ble_data_ptr->PB0_state == 0)
+            PB0_flag = true;
+        }
+      break;
+
     case sl_bt_evt_system_soft_timer_id:
 
-      if(evt->data.evt_system_soft_timer.handle == SOFT_TIMER_PULSE_SENSOR)
-        {
-/*
- * Citation: This code to calculate the BPM was taken from Sparkfun resources.
- */
-          LOG_INFO("pulse state machine\r\n");
-          Signal = analog_values[hr++];
-          if(hr > 9)
-            hr = 0;
-          sampleCounter += 10;                         // keep track of the time in mS with this variable
-          int N = sampleCounter - lastBeatTime;       // monitor the time since the last beat to avoid noise
+          if(PB0_flag && ble_data_ptr->connection_status)
+            {
+              bufferLength = 100; //buffer length of 100 stores 4 seconds of samples running at 25sps
 
-            //  find the peak and trough of the pulse wave
-          if(Signal < thresh && N > (IBI/5)*3){       // avoid dichrotic noise by waiting 3/5 of last IBI
-            if (Signal < T){                        // T is the trough
-              T = Signal;                         // keep track of lowest point in pulse wave
-            }
-          }
+                //read the first 100 samples, and determine the signal range
+                for (uint8_t i = 0 ; i < bufferLength ; i++)
+                {
+                  while (MAX30105_available() == false) //do we have new data?
+                    check(); //Check the sensor for new data
 
-          if(Signal > thresh && Signal > P){          // thresh condition helps avoid noise
-            P = Signal;                             // P is the peak
-          }                                        // keep track of highest point in pulse wave
+                  redBuffer[i] = MAX30105_getRed();
+                  irBuffer[i] = MAX30105_getIR();
+                  MAX30105_nextSample(); //We're finished with this sample so move to next sample
 
-          //  NOW IT'S TIME TO LOOK FOR THE HEART BEAT
-          // signal surges up in value every time there is a pulse
-          if (N > 250){                                   // avoid high frequency noise
-              LOG_INFO("1 %d\r\n", N);
-            if ( (Signal > thresh) && (Pulse == false) && (N > (IBI/5)*3) ){
-                LOG_INFO("2\r\n");
-              Pulse = true;                               // set the Pulse flag when we think there is a pulse
-              IBI = sampleCounter - lastBeatTime;         // measure time between beats in mS
-              lastBeatTime = sampleCounter;               // keep track of time for next pulse
+                  LOG_INFO("red = %d\r", redBuffer[i]);
 
-              if(secondBeat){                        // if this is the second beat, if secondBeat == TRUE
-                secondBeat = false;                  // clear secondBeat flag
-                for(int i=0; i<=9; i++){             // seed the running total to get a realisitic BPM at startup
-                  rate[i] = IBI;
+                  LOG_INFO("ir = %d\r", irBuffer[i]);
+
                 }
-              }
-              LOG_INFO("3\r\n");
-              if(firstBeat){                         // if it's the first time we found a beat, if firstBeat == TRUE
-                firstBeat = false;                   // clear firstBeat flag
-                secondBeat = true;                   // set the second beat flag
-                return;                              // IBI value is unreliable so discard it
-              }
 
-              LOG_INFO("4\r\n");
-              // keep a running total of the last 10 IBI values
-              uint32_t runningTotal = 0;                  // clear the runningTotal variable
+                //calculate heart rate and SpO2 after first 100 samples (first 4 seconds of samples)
+                maxim_heart_rate_and_oxygen_saturation(irBuffer, bufferLength, redBuffer, &spo2, &validSPO2, &heartRate, &validHeartRate);
 
-              for(int i=0; i<=8; i++){                // shift data in the rate array
-                rate[i] = rate[i+1];                  // and drop the oldest IBI value
-                runningTotal += rate[i];              // add up the 9 oldest IBI values
-              }
-              LOG_INFO("5\r\n");
-              rate[9] = IBI;                          // add the latest IBI to the rate array
-              runningTotal += rate[9];                // add the latest IBI to runningTotal
-              runningTotal /= 10;                     // average the last 10 IBI values
-              BPM = 60000/runningTotal;               // how many beats can fit into a minute? that's BPM!
-              LOG_INFO("BPM: %d\r\n",BPM);
+                //Continuously taking samples from MAX30102.  Heart rate and SpO2 are calculated every 1 second
+                while (count <= 10 && PB0_flag == true)
+                {
+                    if(event->data.evt_system_soft_timer.handle == SOFT_TIMER_PULSE_SENSOR)
+                        count++;
+                    LOG_INFO("========================count %d\r\n", count);
+                  //dumping the first 25 sets of samples in the memory and shift the last 75 sets of samples to the top
+                  for (uint8_t i = 25; i < 100; i++)
+                  {
+                    redBuffer[i - 25] = redBuffer[i];
+                    irBuffer[i - 25] = irBuffer[i];
+                  }
+
+                  //take 25 sets of samples before calculating the heart rate.
+                  for (uint8_t i = 75; i < 100; i++)
+                  {
+                    while (MAX30105_available() == false) //do we have new data?
+                      check(); //Check the sensor for new data
+
+              //      digitalWrite(readLED, !digitalRead(readLED)); //Blink onboard LED with every data read
+
+                    redBuffer[i] = MAX30105_getRed();
+                    irBuffer[i] = MAX30105_getIR();
+                    MAX30105_nextSample(); //We're finished with this sample so move to next sample
+
+
+                    hr_buffer[i] = heartRate;
+                    spo2_buffer[i] = spo2;
+                    i++;
+
+                    //send samples and calculation result to terminal program through UART
+//                    LOG_INFO("red = %d\r", redBuffer[i]);
+//
+//                    LOG_INFO("ir = %d\r", irBuffer[i]);
+
+                    LOG_INFO("HR = %d \r", heartRate);
+//
+//                    LOG_INFO("HRvalid = %d\r", validHeartRate);
+//
+                    LOG_INFO("SPO2 = %d \r", spo2);
+//
+//                    LOG_INFO("SPO2Valid = %d\r", validSPO2);
+                  }
+
+                  //After gathering 25 new samples recalculate HR and SP02
+                  maxim_heart_rate_and_oxygen_saturation(irBuffer, bufferLength, redBuffer, &spo2, &validSPO2, &heartRate, &validHeartRate);
+
+                }
+                for(i = 0; i< NO_OF_SAMPLES; i++)
+                  {
+                    if(hr_buffer[i]== -999)
+                      continue;
+                    sum += hr_buffer[i];
+                    LOG_INFO("Last HR sum = %d %ld\r", i, sum);
+                  }
+                heartRate = sum/NO_OF_SAMPLES;
+                LOG_INFO("Last HR = %d %ld\r", heartRate, sum);
+
+                sum = 0;
+                for(i = 0; i< NO_OF_SAMPLES; i++)
+                  {
+                    if(spo2_buffer[i]== -999)
+                      continue;
+                    sum += spo2_buffer[i];
+                    LOG_INFO("Last SPO2 sum = %d %ld\r", i, sum);
+                  }
+                spo2 = sum/NO_OF_SAMPLES;
+                LOG_INFO(" Last SPO2 = %d %ld\r", spo2, sum);
+
+                PB0_flag = false;
+                if(count > 10)
+                  count = 0;
+                i = 0;
+
             }
-        }
-          if (Signal < thresh && Pulse == true){   // when the values are going down, the beat is over
-            Pulse = false;                         // reset the Pulse flag so we can do it again
-            amp = P - T;                           // get amplitude of the pulse wave
-            thresh = amp/2 + T;                    // set thresh at 50% of the amplitude
-            P = thresh;                            // reset these for next time
-            T = thresh;
-          }
 
-          if (N > 2500){                           // if 2.5 seconds go by without a beat
-            thresh = 65536;                          // set thresh default
-            P = 65536;                               // set P default
-            T = 65536;                               // set T default
-            lastBeatTime = sampleCounter;          // bring the lastBeatTime up to date
-            firstBeat = true;                      // set these to avoid noise
-            secondBeat = false;                    // when we get the heartbeat back
-          }
 
   }
-}
+
+
+
 }

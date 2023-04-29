@@ -38,6 +38,12 @@
 #define EXTCOMIN_port gpioPortF
 #define EXTCOMIN_pin 18
 
+//PB0: RADIO_PF6
+#define PB0_port            gpioPortF
+#define PB0_pin             6
+//PB1: RADIO_PF7
+#define PB1_port            gpioPortF
+#define PB1_pin             7
 
 // Set GPIO drive strengths and modes of operation
 void gpioInit()
@@ -58,6 +64,18 @@ void gpioInit()
 
   GPIO_DriveStrengthSet(EXTCOMIN_port, gpioDriveStrengthWeakAlternateWeak);
   GPIO_PinModeSet(EXTCOMIN_port, EXTCOMIN_pin, gpioModePushPull, false);
+
+  //Configuring PB0 with glitch input filtering
+  GPIO_PinModeSet(PB0_port, PB0_pin, gpioModeInputPullFilter , true);
+  GPIO_ExtIntConfig (PB0_port, PB0_pin, PB0_pin, true, true, true);
+  NVIC_ClearPendingIRQ(GPIO_EVEN_IRQn );
+  NVIC_EnableIRQ(GPIO_EVEN_IRQn );
+
+  //Configuring PB1 with glitch input filtering
+  GPIO_PinModeSet(PB1_port, PB1_pin, gpioModeInputPullFilter , true);
+  GPIO_ExtIntConfig (PB1_port, PB1_pin, PB1_pin, true, true, true);
+  NVIC_ClearPendingIRQ(GPIO_ODD_IRQn );
+  NVIC_EnableIRQ(GPIO_ODD_IRQn );
 
 
 } // gpioInit()
@@ -106,4 +124,18 @@ void gpioSetDisplayExtcomin(bool val)
     GPIO_PinOutClear(EXTCOMIN_port,EXTCOMIN_pin);
 }
 
+unsigned int gpioReadPB0(void)
+{
+  static unsigned int pin_state = 1;
+  pin_state = GPIO_PinInGet(PB0_port, PB0_pin);
 
+  return pin_state;
+}
+
+unsigned int gpioReadPB1(void)
+{
+  static unsigned int pin_state = 1;
+  pin_state = GPIO_PinInGet(PB1_port, PB1_pin);
+
+  return pin_state;
+}

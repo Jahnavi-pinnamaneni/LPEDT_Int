@@ -86,6 +86,71 @@ uint8_t offset = 0;
 
 static const uint16_t FIRCoeffs[12] = {172, 321, 579, 927, 1360, 1858, 2390, 2916, 3391, 3768, 4012, 4096};
 
+#define RATE_SIZE 4
+uint8_t rates[RATE_SIZE]; //Array of heart rates
+uint8_t rateSpot = 0;
+long lastBeat = 0; //Time at which the last beat occurred
+
+float beatsPerMinute;
+int beatAvg;
+
+void HR_init()
+{
+  // Init steps for MAX
+   LOG_INFO("MAX30105_begin\r");
+   MAX30105_begin();
+
+   LOG_INFO("MAX30105_setup\r");
+   // uint8_t powerLevel = 0x1F, uint8_t sampleAverage = 4, uint8_t ledMode = 3, int sampleRate = 400, int pulseWidth = 411, int adcRange = 4096
+   MAX30105_setup(0x1F, 4, 2, 400, 411, 4096);
+ //  MAX30105_init();
+
+   LOG_INFO("MAX30105_setPulseAmplitudes\r");
+   MAX30105_setPulseAmplitudeRed(0x0A);
+   MAX30105_setPulseAmplitudeGreen(0);
+}
+
+
+void HR_measure()
+{
+  long irValue = MAX30105_getIR();
+  LOG_INFO("IR vlaue = %d\r", irValue);
+
+  if (checkForBeat(irValue) == true)
+  {
+    //We sensed a beat!
+    LOG_INFO("================================== Inside checkForBeat ===============================\r");
+    long delta = millis() - lastBeat;
+    lastBeat = millis();
+
+    beatsPerMinute = 60 / (delta / 1000.0);
+
+    if (beatsPerMinute < 255 && beatsPerMinute > 20)
+    {
+      rates[rateSpot++] = (uint8_t)beatsPerMinute; //Store this reading in the array
+      rateSpot %= RATE_SIZE; //Wrap variable
+
+      //Take average of readings
+      beatAvg = 0;
+      for (uint8_t x = 0 ; x < RATE_SIZE ; x++)
+        beatAvg += rates[x];
+      beatAvg /= RATE_SIZE;
+    }
+  }
+
+  LOG_INFO("IR = %d\r", irValue);
+  LOG_INFO("BPM = %d\r", beatsPerMinute);
+
+  LOG_INFO("Avg BPM = %d\r", beatAvg);
+
+
+  if (irValue < 50000)
+    LOG_INFO(" No finger?");
+
+//  LOG_INFO("HR = %d\r", meanDiff(MAX30105_getIR()));
+
+
+}
 //  Heart Rate Monitor functions takes a sample value and the sample number
 //  Returns true if a beat is detected
 //  A running average of four samples is recommended for display on the screen.

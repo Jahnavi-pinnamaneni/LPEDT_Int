@@ -68,6 +68,12 @@
 //#include "Arduino.h"
 #include <math.h>
 #include "spo2_algo.h"
+#include <stdbool.h>
+
+// Include logging specifically for this .c file
+#define INCLUDE_LOG_DEBUG 1
+#include "src/log.h"
+
 
 const uint8_t uch_spo2_table[184]={ 95, 95, 95, 96, 96, 96, 97, 97, 97, 97, 97, 98, 98, 98, 98, 98, 99, 99, 99, 99,
               99, 99, 99, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
@@ -342,5 +348,36 @@ void maxim_sort_indices_descend(  int32_t  *pn_x, int32_t *pn_indx, int32_t n_si
   }
 }
 
+
+void SPO2_init()
+{
+//    Serial.begin(115200); // initialize serial communication at 115200 bits per second:
+//
+//   pinMode(pulseLED, OUTPUT);
+//   pinMode(readLED, OUTPUT);
+
+   // Initialize sensor
+//   if (!particleSensor.begin(Wire, I2C_SPEED_FAST)) //Use default I2C port, 400kHz speed
+//   {
+//     Serial.println(F("MAX30105 was not found. Please check wiring/power."));
+//     while (1);
+//   }
+  LOG_INFO("MAX30105_begin\r");
+  MAX30105_begin();
+//   Serial.println(F("Attach sensor to finger with rubber band. Press any key to start conversion"));
+//   while (Serial.available() == 0) ; //wait until user presses a key
+//   Serial.read();
+
+   uint8_t ledBrightness = 60; //Options: 0=Off to 255=50mA
+   uint8_t sampleAverage = 4; //Options: 1, 2, 4, 8, 16, 32
+   uint8_t ledMode = 2; //Options: 1 = Red only, 2 = Red + IR, 3 = Red + IR + Green
+   uint8_t sampleRate = 100; //Options: 50, 100, 200, 400, 800, 1000, 1600, 3200
+   int pulseWidth = 411; //Options: 69, 118, 215, 411
+   int adcRange = 4096; //Options: 2048, 4096, 8192, 16384
+   LOG_INFO("MAX30105_setup\r");
+   // uint8_t powerLevel = 0x1F, uint8_t sampleAverage = 4, uint8_t ledMode = 3, int sampleRate = 400, int pulseWidth = 411, int adcRange = 4096
+//   MAX30105_setup(0x1F, 4, 2, 400, 411, 4096);
+   MAX30105_setup(ledBrightness, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange); //Configure sensor with these settings
+}
 
 

@@ -44,4 +44,5 @@ void maxim_remove_close_peaks(int32_t *pn_locs, int32_t *pn_npks, int32_t *pn_x,
 void maxim_sort_ascend(int32_t  *pn_x, int32_t n_size);
 void maxim_sort_indices_descend(int32_t  *pn_x, int32_t *pn_indx, int32_t n_size);
 
+void SPO2_init();
 #endif /* SRC_SPO2_ALGO_H_ */
