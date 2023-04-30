@@ -252,9 +252,10 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
    handle_ble_event(evt); // put this code in ble.c/.h
 
   // sequence through states driven by events
-   temperature_state_machine(evt);    // put this code in scheduler.c/.h
-
-   BPM_state_machine(evt);
+//   temperature_state_machine(evt);    // put this code in scheduler.c/.h
+//
+//   BPM_state_machine(evt);
+   SPO2_measure_state_machine(evt);
 
 
 } // sl_bt_on_event()

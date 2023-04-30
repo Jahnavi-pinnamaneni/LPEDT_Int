@@ -15,8 +15,11 @@
 //#define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
 
-#define TIME_RESOLUTION 3000
+#define TIME_RESOLUTION 10
 static long int count_flag = 0;
+
+#define PB0_POSITION    0x40 // Interrupt Bit position for PB0 is at the 7th. 0b1000000
+#define PB1_POSITION    0x80 // Interrupt Bit position for PB1 is at the 8th. 0b10000000
 
 I2C_TransferReturn_TypeDef I2CTransferReturn;
 
@@ -75,4 +78,33 @@ void I2C0_IRQHandler(void)
 I2C_TransferReturn_TypeDef getI2CTransferReturn()
 {
   return I2CTransferReturn;
+}
+
+/*
+ * @desc: This function Handles the PB0 GPIO interrupt and sets the scheduler event
+ */
+void GPIO_EVEN_IRQHandler(void)
+{
+  uint32_t interrupt_flag;
+  interrupt_flag = GPIO_IntGet();
+  GPIO_IntClear(interrupt_flag);
+  if(interrupt_flag & PB0_POSITION)
+    {
+      schedulerSetEventPB0();
+    }
+}
+
+/*
+ * @desc: This function Handles the PB1 GPIO interrupt and sets the scheduler event
+ */
+void GPIO_ODD_IRQHandler(void)
+{
+  uint32_t interrupt_flag;
+  interrupt_flag = GPIO_IntGet();
+  GPIO_IntClear(interrupt_flag);
+  if(interrupt_flag & PB1_POSITION)
+    {
+      schedulerSetEventPB1();
+    }
+
 }

@@ -21,7 +21,8 @@ extern const sli_bt_gattdb_t gattdb;
 #define gattdb_measurement_interval           30
 #define gattdb_valid_range                    31
 #define gattdb_BPM                            35
-#define gattdb_ota_control                    39
+#define gattdb_SPO2                           39
+#define gattdb_ota_control                    43
 
 
 #endif // __GATT_DB_H

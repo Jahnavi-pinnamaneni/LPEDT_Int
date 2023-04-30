@@ -19,4 +19,7 @@ void LETIMER0_IRQHandler(void);
 long int letimerMilliseconds(void);
 void I2C0_IRQHandler(void);
 
+void GPIO_EVEN_IRQHandler(void);
+void GPIO_ODD_IRQHandler(void);
+
 #endif /* SRC_IRQ_H_ */

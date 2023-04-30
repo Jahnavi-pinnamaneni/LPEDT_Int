@@ -12,6 +12,7 @@
 #include "timers.h"
 #include <stdint.h>
 #define SI7021_DEVICE_ADDR 0x40
+#define MAX30105_ADDRESS          0x57
 
 /*
  * @desc: This function initializes the SCL and SDA GPIO pins to pull up configuration. Additionally the clock is also set to the High frequency peripheral clock (HFPERCLK)
@@ -68,4 +69,11 @@ void i2c_read_irq(void);
  */
 uint8_t I2CTransferInitWrapper(uint8_t address, uint8_t* Data, uint8_t ReadWrite, uint8_t DataLen,
                                uint8_t ReadLen);
+
+uint8_t max30101_i2c_read_reg(uint8_t reg);
+void max30101_i2c_write_reg(uint8_t reg, uint8_t value);
+//void max30101_i2c_write_reg(uint8_t reg, uint8_t *value);
+uint8_t max30101_i2c_read();
+void max30101_i2c_write(uint8_t reg);
+uint8_t max30101_i2c_burst_read(uint8_t reg, uint8_t *data, unsigned int len);
 #endif /* SRC_I2C_H_ */

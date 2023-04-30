@@ -130,12 +130,12 @@
     </characteristic>
   </service>
 
-  <!--Health Monitor-->
-  <service advertise="true" name="Health Monitor" requirement="mandatory" sourceId="" type="primary" uuid="1c417a02-327b-4b54-bf8a-0f91303bb504">
+  <!--BPM-->
+  <service advertise="true" name="BPM" requirement="mandatory" sourceId="" type="primary" uuid="1c417a02-327b-4b54-bf8a-0f91303bb504">
 
     <!--BPM-->
     <characteristic const="false" id="BPM" name="BPM" sourceId="" uuid="65ca8de5-5b00-4129-a3e9-9d8daed9842d">
-      <value length="0" type="hex" variable_length="false">00</value>
+      <value length="1" type="hex" variable_length="false">00</value>
       <properties>
         <read authenticated="false" bonded="false" encrypted="false"/>
         <indicate authenticated="false" bonded="false" encrypted="false"/>
@@ -143,6 +143,37 @@
 
       <!--Client Characteristic Configuration-->
       <descriptor const="false" discoverable="true" id="bpm_client_characteristic_configuration_0" name="Client Characteristic Configuration" sourceId="org.bluetooth.descriptor.gatt.client_characteristic_configuration" uuid="2902">
+        <informativeText>Abstract: 
+        The Client Characteristic Configuration descriptor defines how the characteristic may be configured by a specific client.            
+		
+Summary: 
+        This descriptor shall be persistent across connections for bonded devices.
+        The Client Characteristic Configuration descriptor is unique for each client. A client may read and write this descriptor to determine and set the configuration for that client.
+        Authentication and authorization may be required by the server to write this descriptor.
+        The default value for the Client Characteristic Configuration descriptor is 0x00. Upon connection of non-binded clients, this descriptor is set to the default value.
+		</informativeText>
+        <properties>
+          <read authenticated="false" bonded="false" encrypted="false"/>
+          <write authenticated="false" bonded="false" encrypted="false"/>
+        </properties>
+        <value length="2" type="hex" variable_length="false"/>
+      </descriptor>
+    </characteristic>
+  </service>
+
+  <!--SPO2-->
+  <service advertise="true" name="SPO2" requirement="mandatory" sourceId="" type="primary" uuid="e757e109-a260-46f3-8726-9a34e316e526">
+
+    <!--SPO2-->
+    <characteristic const="false" id="SPO2" name="SPO2" sourceId="" uuid="e75f9e9f-8906-4377-a142-e801a462f81c">
+      <value length="1" type="hex" variable_length="false">00</value>
+      <properties>
+        <read authenticated="false" bonded="false" encrypted="false"/>
+        <indicate authenticated="false" bonded="false" encrypted="false"/>
+      </properties>
+
+      <!--Client Characteristic Configuration-->
+      <descriptor const="false" discoverable="true" id="spo2_client_characteristic_configuration_0" name="Client Characteristic Configuration" sourceId="org.bluetooth.descriptor.gatt.client_characteristic_configuration" uuid="2902">
         <informativeText>Abstract: 
         The Client Characteristic Configuration descriptor defines how the characteristic may be configured by a specific client.            
 		
